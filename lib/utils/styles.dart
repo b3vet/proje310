@@ -3,26 +3,26 @@ import './colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 TextStyle? kHeadingTextStyle = GoogleFonts.montserrat(
-  color: AppColors.headingColor,
+  color: AppThemes.lightTheme.textTheme.headline2!.color,
   fontWeight: FontWeight.w900,
   fontSize: 30.0,
   letterSpacing: -0.7,
 );
 
 final kButtonLightTextStyle = GoogleFonts.montserrat(
-  color: AppColors.textColor,
+  color: AppThemes.lightTheme.textTheme.button!.color,
   fontSize: 20.0,
   letterSpacing: -0.7,
 );
 
 final kButtonDarkTextStyle = GoogleFonts.montserrat(
-  color: AppColors.darkButtonTextColor,
+  color: AppThemes.darkTheme.textTheme.button!.color,
   fontSize: 20.0,
   letterSpacing: -0.7,
 );
 
 final kAppBarTitleTextStyle = GoogleFonts.montserrat(
-  color: AppColors.appBarTitleTextColor,
+  color: AppThemes.lightTheme.textTheme.headline1!.color,
   fontSize: 24.0,
   fontWeight: FontWeight.w600,
   letterSpacing: -0.7,
@@ -30,11 +30,11 @@ final kAppBarTitleTextStyle = GoogleFonts.montserrat(
 
 final kBoldLabelStyle = GoogleFonts.montserrat(
   fontSize: 17.0,
-  color: AppColors.textColor,
+  color: AppThemes.lightTheme.textTheme.bodyText1!.color,
   fontWeight: FontWeight.w600,
 );
 
 final kLabelStyle = GoogleFonts.montserrat(
   fontSize: 14.0,
-  color: AppColors.textColor,
+  color: AppThemes.lightTheme.textTheme.bodyText1!.color,
 );

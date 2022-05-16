@@ -5,7 +5,7 @@ part 'connection.g.dart';
 
 @JsonSerializable()
 class Connection {
-  int id;
+  String id;
   User subject;
   User target;
   String

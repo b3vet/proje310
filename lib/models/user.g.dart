@@ -34,7 +34,7 @@ Map<String, dynamic> _$AddressToJson(Address instance) => <String, dynamic>{
 
 Topic _$TopicFromJson(Map<String, dynamic> json) => Topic(
       topicName: json['topicName'] as String,
-      id: json['id'] as int,
+      id: json['id'] as String,
     );
 
 Map<String, dynamic> _$TopicToJson(Topic instance) => <String, dynamic>{
@@ -43,7 +43,7 @@ Map<String, dynamic> _$TopicToJson(Topic instance) => <String, dynamic>{
     };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
-      id: json['id'] as int,
+      id: json['id'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
       username: json['username'] as String,

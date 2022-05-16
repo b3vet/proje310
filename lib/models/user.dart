@@ -39,7 +39,7 @@ class Address {
 @JsonSerializable()
 class Topic {
   String topicName;
-  int id;
+  String id;
 
   Topic({
     required this.topicName,
@@ -52,7 +52,7 @@ class Topic {
 
 @JsonSerializable()
 class User {
-  int id;
+  String id;
   String name;
   String username;
   String email;
@@ -77,17 +77,17 @@ class User {
   List<String> bookmarkedPosts =
       []; //this is is a list of post ids that are bookmarked by the user
 
-  User({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.username,
-    this.profilePictureUrl,
-    required this.deactivated,
-    required this.publicAccount,
-    required this.subscribedLocations,
-    required this.subscribedTopics,
-  });
+  User(
+      {required this.id,
+      required this.name,
+      required this.email,
+      required this.username,
+      this.profilePictureUrl,
+      required this.deactivated,
+      required this.publicAccount,
+      required this.subscribedLocations,
+      required this.subscribedTopics,
+      this.bio});
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   Map<String, dynamic> toJson() => _$UserToJson(this);

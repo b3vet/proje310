@@ -23,10 +23,14 @@ class Welcome extends StatelessWidget {
               ),
             ),
             const Spacer(),
-            Padding(
-              padding: const EdgeInsets.all(60.0),
-              child: Image.network(
-                  'https://images-na.ssl-images-amazon.com/images/I/417MahKs6fL.png'),
+            const Padding(
+              padding: EdgeInsets.all(60.0),
+              child: CircleAvatar(
+                radius: 100,
+                backgroundImage: NetworkImage(
+                  'https://giftstrefa.pl/wp-content/uploads/2020/01/vodka-connecting-people-kubek.jpg',
+                ),
+              ),
             ),
             const Spacer(),
             Padding(
@@ -65,7 +69,7 @@ class Welcome extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
                         child: Text(
                           'Login',
-                          style: kButtonDarkTextStyle,
+                          style: kButtonLightTextStyle,
                         ),
                       ),
                       style: OutlinedButton.styleFrom(

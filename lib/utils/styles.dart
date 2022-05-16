@@ -10,7 +10,7 @@ TextStyle? kHeadingTextStyle = GoogleFonts.montserrat(
 );
 
 final kButtonLightTextStyle = GoogleFonts.montserrat(
-  color: AppThemes.lightTheme.textTheme.button!.color,
+  color: AppThemes.lightTheme.scaffoldBackgroundColor,
   fontSize: 20.0,
   letterSpacing: -0.7,
 );

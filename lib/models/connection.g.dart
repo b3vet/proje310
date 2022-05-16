@@ -7,7 +7,7 @@ part of 'connection.dart';
 // **************************************************************************
 
 Connection _$ConnectionFromJson(Map<String, dynamic> json) => Connection(
-      id: json['id'] as int,
+      id: json['id'] as String,
       subject: User.fromJson(json['subject'] as Map<String, dynamic>),
       target: User.fromJson(json['target'] as Map<String, dynamic>),
       type: json['type'] as String,

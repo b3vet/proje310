@@ -3,6 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './utils/colors.dart';
 import 'models/user.dart';
+import 'ui/edit_profile.dart';
+import 'ui/login.dart';
+import 'ui/profile_view.dart';
+import 'ui/signup.dart';
 import 'ui/walkthrough.dart';
 import 'ui/welcome.dart';
 
@@ -10,7 +14,22 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   bool welcomeShownBefore = prefs.getBool('walkthroughShown') ?? false;
-  runApp(MyApp(welcomeShownBefore: welcomeShownBefore));
+  print(welcomeShownBefore);
+  User user = User(
+    id: 'someuuid',
+    deactivated: false,
+    subscribedLocations: [],
+    name: 'tester user',
+    email: 'tester@gmail.com',
+    username: 'testerrr123',
+    publicAccount: true,
+    subscribedTopics: [],
+    bio: 'Uzun bir bio deneme hello testing',
+    profilePictureUrl: 'https://cdn.bolgegundem.com/d/gallery/9472_2.jpg',
+  );
+  runApp(
+    MyApp(welcomeShownBefore: welcomeShownBefore, user: user),
+  );
 }
 
 class Dummy extends StatelessWidget {
@@ -23,8 +42,10 @@ class Dummy extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({required this.welcomeShownBefore, Key? key}) : super(key: key);
+  const MyApp({required this.welcomeShownBefore, required this.user, Key? key})
+      : super(key: key);
   final bool welcomeShownBefore;
+  final User user;
 
   //final Future<FirebaseApp> _init = Firebase.initializeApp(); will be added
   /*
@@ -56,20 +77,21 @@ class MyApp extends StatelessWidget {
       theme: AppThemes.lightTheme,
       routes: {
         '/welcome': (context) => const Welcome(),
-        '/signup': (context) => const Dummy(),
-        '/login': (context) => const Dummy(),
-        '/test': (context) => const Dummy(),
+        '/signup': (context) => const SignUp(),
+        '/login': (context) => const Login(),
+        '/profile': (context) => ProfileView(user: user),
+        '/editProfile': (context) => EditProfile(user: user)
       },
-      home: welcomeShownBefore
+      home: welcomeShownBefore == false
           ? const WalkThrough()
-          : const AuthenticationStatus(),
+          : AuthenticationStatus(user: user),
     );
   }
 }
 
 class AuthenticationStatus extends StatefulWidget {
-  const AuthenticationStatus({Key? key}) : super(key: key);
-
+  const AuthenticationStatus({required this.user, Key? key}) : super(key: key);
+  final User user;
   @override
   State<AuthenticationStatus> createState() => _AuthenticationStatusState();
 }
@@ -82,7 +104,7 @@ class _AuthenticationStatusState extends State<AuthenticationStatus> {
     if (user == null) {
       return const Welcome();
     } else {
-      return const Dummy();
+      return ProfileView(user: widget.user);
     }
   }
 }

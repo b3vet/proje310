@@ -181,7 +181,7 @@ class _LoginState extends State<Login> {
                       //await loginUser(); add this line in the next step
                       Navigator.pushNamedAndRemoveUntil(
                         context,
-                        '/profile',
+                        '/appView',
                         (route) => false,
                       ); //remove this line in next step
                     } else {

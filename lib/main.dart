@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './utils/colors.dart';
+import 'logic/user_provider.dart';
 import 'models/user.dart';
+import 'ui/app_view.dart';
 import 'ui/edit_profile.dart';
+import 'ui/feed.dart';
 import 'ui/login.dart';
 import 'ui/profile_view.dart';
+import 'ui/search.dart';
 import 'ui/signup.dart';
 import 'ui/walkthrough.dart';
 import 'ui/welcome.dart';
@@ -14,21 +18,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   bool welcomeShownBefore = prefs.getBool('walkthroughShown') ?? false;
-  print(welcomeShownBefore);
-  User user = User(
-    id: 'someuuid',
-    deactivated: false,
-    subscribedLocations: [],
-    name: 'tester user',
-    email: 'tester@gmail.com',
-    username: 'testerrr123',
-    publicAccount: true,
-    subscribedTopics: [],
-    bio: 'Uzun bir bio deneme hello testing',
-    profilePictureUrl: 'https://cdn.bolgegundem.com/d/gallery/9472_2.jpg',
-  );
   runApp(
-    MyApp(welcomeShownBefore: welcomeShownBefore, user: user),
+    MyApp(welcomeShownBefore: welcomeShownBefore),
   );
 }
 
@@ -42,10 +33,8 @@ class Dummy extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({required this.welcomeShownBefore, required this.user, Key? key})
-      : super(key: key);
+  const MyApp({required this.welcomeShownBefore, Key? key}) : super(key: key);
   final bool welcomeShownBefore;
-  final User user;
 
   //final Future<FirebaseApp> _init = Firebase.initializeApp(); will be added
   /*
@@ -72,26 +61,29 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'SUConnect',
-      theme: AppThemes.lightTheme,
-      routes: {
-        '/welcome': (context) => const Welcome(),
-        '/signup': (context) => const SignUp(),
-        '/login': (context) => const Login(),
-        '/profile': (context) => ProfileView(user: user),
-        '/editProfile': (context) => EditProfile(user: user)
-      },
-      home: welcomeShownBefore == false
-          ? const WalkThrough()
-          : AuthenticationStatus(user: user),
+    return ChangeNotifierProvider<UserProvider>(
+      create: (context) => UserProvider(),
+      child: MaterialApp(
+        title: 'SUConnect',
+        theme: AppThemes.lightTheme,
+        routes: {
+          '/appView': (context) => const AppView(),
+          '/welcome': (context) => const Welcome(),
+          '/signup': (context) => const SignUp(),
+          '/login': (context) => const Login(),
+          '/profile': (context) => const ProfileView(),
+          '/editProfile': (context) => const EditProfile()
+        },
+        home: welcomeShownBefore == false
+            ? const WalkThrough()
+            : const AuthenticationStatus(),
+      ),
     );
   }
 }
 
 class AuthenticationStatus extends StatefulWidget {
-  const AuthenticationStatus({required this.user, Key? key}) : super(key: key);
-  final User user;
+  const AuthenticationStatus({Key? key}) : super(key: key);
   @override
   State<AuthenticationStatus> createState() => _AuthenticationStatusState();
 }
@@ -99,12 +91,15 @@ class AuthenticationStatus extends StatefulWidget {
 class _AuthenticationStatusState extends State<AuthenticationStatus> {
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<User?>(context);
+    final provider = Provider.of<UserProvider>(
+      context,
+      listen: false,
+    );
 
-    if (user == null) {
+    if (provider.user == null) {
       return const Welcome();
     } else {
-      return ProfileView(user: widget.user);
+      return const AppView();
     }
   }
 }

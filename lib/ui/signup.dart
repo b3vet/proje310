@@ -267,8 +267,11 @@ class _SignUpState extends State<SignUp> {
                     //username de kaydetmen lazım
                     //add username control here
                     //await loginUser(); add this line in the next step
-                    Navigator.pushNamedAndRemoveUntil(context, '/profile',
-                        (route) => false); //remove this line in the next step
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/appView',
+                      (route) => false,
+                    ); //remove this line in the next step
 
                   } else {
                     _showDialog('Form Error', 'Your form is invalid', context);

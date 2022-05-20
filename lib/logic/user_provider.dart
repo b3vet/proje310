@@ -4,16 +4,17 @@ import '../models/user.dart';
 
 class UserProvider extends ChangeNotifier {
   User? _user = User(
-    id: 'someuuid',
+    id: 'uuid-96',
+    name: 'TOSKO',
+    email: 'myemail4@gmail.com',
     deactivated: false,
-    subscribedLocations: [],
-    name: 'tester user',
-    email: 'tester@gmail.com',
-    username: 'testerrr123',
     publicAccount: true,
+    subscribedLocations: [],
     subscribedTopics: [],
-    bio: 'Uzun bir bio deneme hello testing',
-    profilePictureUrl: 'https://cdn.bolgegundem.com/d/gallery/9472_2.jpg',
+    username: 'crazyguy68',
+    bio: 'I am a crazy guy 4 welcome to my account!',
+    profilePictureUrl:
+        'https://im.haberturk.com/2019/12/27/ver1577449006/2553553_810x458.jpg',
   );
 
   User? get user => _user;

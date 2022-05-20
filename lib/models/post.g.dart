@@ -25,7 +25,8 @@ Post _$PostFromJson(Map<String, dynamic> json) => Post(
       shareCount: json['shareCount'] as int? ?? 0,
       commentCount: json['commentCount'] as int? ?? 0,
       likeCount: json['likeCount'] as int? ?? 0,
-    );
+      commentToId: json['commentToId'] as String?,
+    )..createdAt = DateTime.parse(json['createdAt'] as String);
 
 Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'id': instance.id,
@@ -40,4 +41,6 @@ Map<String, dynamic> _$PostToJson(Post instance) => <String, dynamic>{
       'shareCount': instance.shareCount,
       'commentCount': instance.commentCount,
       'likeCount': instance.likeCount,
+      'commentToId': instance.commentToId,
+      'createdAt': instance.createdAt.toIso8601String(),
     };

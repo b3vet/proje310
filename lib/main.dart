@@ -3,14 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './utils/colors.dart';
 import 'logic/user_provider.dart';
-import 'models/user.dart';
 import 'ui/app_view.dart';
 import 'ui/edit_profile.dart';
-import 'ui/feed.dart';
 import 'ui/login.dart';
+import 'ui/notifications_view.dart';
 import 'ui/profile_view.dart';
-import 'ui/search.dart';
 import 'ui/signup.dart';
+import 'ui/single_post_view.dart';
 import 'ui/walkthrough.dart';
 import 'ui/welcome.dart';
 
@@ -61,9 +60,14 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<UserProvider>(
-      create: (context) => UserProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<UserProvider>(
+          create: (context) => UserProvider(),
+        ),
+      ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'SUConnect',
         theme: AppThemes.lightTheme,
         routes: {
@@ -72,7 +76,9 @@ class MyApp extends StatelessWidget {
           '/signup': (context) => const SignUp(),
           '/login': (context) => const Login(),
           '/profile': (context) => const ProfileView(),
-          '/editProfile': (context) => const EditProfile()
+          '/editProfile': (context) => const EditProfile(),
+          '/notificationView': (context) => const NotificationView(),
+          '/singlePostView': (context) => const SinglePostView(),
         },
         home: welcomeShownBefore == false
             ? const WalkThrough()
@@ -93,7 +99,6 @@ class _AuthenticationStatusState extends State<AuthenticationStatus> {
   Widget build(BuildContext context) {
     final provider = Provider.of<UserProvider>(
       context,
-      listen: false,
     );
 
     if (provider.user == null) {

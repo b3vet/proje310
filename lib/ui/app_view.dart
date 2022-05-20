@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'feed.dart';
+import 'notifications_view.dart';
 import 'profile_view.dart';
 import 'search.dart';
 
@@ -20,9 +21,7 @@ class _AppViewState extends State<AppView> {
     _pages = <Widget>[
       const FeedView(),
       const SearchView(),
-      const Center(
-        child: Text('notifications page'),
-      ),
+      const NotificationView(),
       const ProfileView(),
     ];
     super.initState();

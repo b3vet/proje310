@@ -23,6 +23,9 @@ class Post {
   int commentCount = 0;
   int likeCount = 0;
 
+  String?
+      commentToId; //if this post is a comment to another post, this id will be the id of the post that is commented with this post.
+
   DateTime createdAt = DateTime.now();
   Post({
     required this.id,
@@ -37,6 +40,7 @@ class Post {
     this.shareCount = 0,
     this.commentCount = 0,
     this.likeCount = 0,
+    this.commentToId,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) => _$PostFromJson(json);

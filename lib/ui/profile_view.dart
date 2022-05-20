@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
-import 'post_card.dart';
+import '../utils/dummy_data.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -18,64 +18,21 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView>
     with TickerProviderStateMixin {
-  List<Post> posts = [
-    Post(
-      id: 'someuuid-1',
-      text: 'Merhaba denem test yey',
-      likedBy: ['uuid-1', 'uuid-2'],
-      comments: ['uuid-1', 'uuid-2'],
-      commentCount: 2,
-      likeCount: 2,
-      userId: 'uuid-99',
-    ),
-    Post(
-      id: 'someuuid-2',
-      text: 'Merhaba denem test yey',
-      likedBy: ['uuid-1', 'uuid-2'],
-      comments: ['uuid-1', 'uuid-2'],
-      commentCount: 1,
-      likeCount: 5,
-      userId: 'uuid-99',
-    ),
-    Post(
-      id: 'someuuid-3',
-      text: 'Merhaba denem test yey',
-      likedBy: ['uuid-1', 'uuid-2'],
-      comments: ['uuid-1', 'uuid-2'],
-      commentCount: 2,
-      likeCount: 4,
-      userId: 'uuid-99',
-    ),
-    Post(
-      id: 'someuuid-4',
-      text: 'Merhaba denem test yey',
-      likedBy: ['uuid-1', 'uuid-2'],
-      comments: ['uuid-1', 'uuid-2'],
-      commentCount: 2,
-      likeCount: 2,
-      userId: 'uuid-99',
-    ),
-    Post(
-      id: 'someuuid-5',
-      text: 'Merhaba denem test yey',
-      likedBy: ['uuid-1', 'uuid-2'],
-      comments: ['uuid-1', 'uuid-2'],
-      commentCount: 2,
-      likeCount: 2,
-      userId: 'uuid-99',
-    ),
-  ];
-
+  List<Post> userPosts = DummyData.posts
+      .where(
+        (element) => element.userId == 'uuid-96',
+      )
+      .toList();
   void deletePost(Post post) {
     setState(() {
-      posts.remove(post);
+      userPosts.remove(post);
     });
   }
 
-  void incrementLikes(Post post) {
+  void incrementLikes(Post post, User user) {
     setState(() {
       post.likeCount++;
-      post.likedBy.add('uuid-34'); //add the uuid of the current user here
+      post.likedBy.add(user.id);
     });
   }
 
@@ -135,28 +92,20 @@ class _ProfileViewState extends State<ProfileView>
               controller: _controller,
               children: [
                 PostsTab(
-                  posts: posts,
+                  posts: userPosts,
                   incrementLikes: incrementLikes,
-                  deletePost: deletePost,
-                  user: user,
                 ),
                 PostsTab(
-                  posts: posts,
+                  posts: userPosts,
                   incrementLikes: incrementLikes,
-                  deletePost: deletePost,
-                  user: user,
                 ),
                 PostsTab(
-                  posts: posts,
+                  posts: userPosts,
                   incrementLikes: incrementLikes,
-                  deletePost: deletePost,
-                  user: user,
                 ),
                 PostsTab(
-                  posts: posts,
+                  posts: userPosts,
                   incrementLikes: incrementLikes,
-                  deletePost: deletePost,
-                  user: user,
                 ),
               ],
             ),

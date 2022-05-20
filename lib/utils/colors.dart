@@ -37,8 +37,13 @@ class AppThemes {
     scaffoldBackgroundColor: textSwatch.shade100,
     backgroundColor: textSwatch.shade100,
     cardColor: Colors.white,
-    bottomAppBarColor: Colors.white,
+    bottomAppBarColor: primarySwatch.shade700,
     dividerColor: const Color(0x1C000000),
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: primarySwatch.shade500,
+      selectedItemColor: primarySwatch.shade500,
+      unselectedItemColor: primarySwatch.shade100,
+    ),
     textTheme: TextTheme(
       headline1: TextStyle(
         color: textSwatch.shade700,

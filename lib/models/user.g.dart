@@ -56,8 +56,8 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
       subscribedTopics: (json['subscribedTopics'] as List<dynamic>)
           .map((e) => Topic.fromJson(e as Map<String, dynamic>))
           .toList(),
+      bio: json['bio'] as String?,
     )
-      ..bio = json['bio'] as String?
       ..posts = (json['posts'] as List<dynamic>)
           .map((e) => Post.fromJson(e as Map<String, dynamic>))
           .toList()

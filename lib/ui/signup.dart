@@ -2,7 +2,10 @@ import 'dart:io' show Platform;
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../logic/user_provider.dart';
+import '../models/user.dart';
 import '../utils/dimensions.dart';
 import '../utils/screenSizes.dart';
 import '../utils/styles.dart';
@@ -260,15 +263,34 @@ class _SignUpState extends State<SignUp> {
               OutlinedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    print('Email: $email');
                     _formKey.currentState!.save();
-                    print('Email: $email');
 
                     //username de kaydetmen lazım
                     //add username control here
                     //await loginUser(); add this line in the next step
-                    Navigator.pushNamedAndRemoveUntil(context, '/profile',
-                        (route) => false); //remove this line in the next step
+                    Provider.of<UserProvider>(
+                      context,
+                      listen: false,
+                    ).add(
+                      User(
+                        id: 'uuid-96',
+                        name: 'TOSKO',
+                        email: 'myemail4@gmail.com',
+                        deactivated: false,
+                        publicAccount: true,
+                        subscribedLocations: [],
+                        subscribedTopics: [],
+                        username: 'crazyguy68',
+                        bio: 'I am a crazy guy 4 welcome to my account!',
+                        profilePictureUrl:
+                            'https://im.haberturk.com/2019/12/27/ver1577449006/2553553_810x458.jpg',
+                      ),
+                    );
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/appView',
+                      (route) => false,
+                    ); //remove this line in the next step
 
                   } else {
                     _showDialog('Form Error', 'Your form is invalid', context);

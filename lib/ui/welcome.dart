@@ -12,27 +12,11 @@ class Welcome extends StatelessWidget {
         maintainBottomViewPadding: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: <Widget>[
-            Center(
-              child: Padding(
-                padding: Dimen.regularPadding,
-                child: Text(
-                  'Welcome to SUConnect',
-                  style: kHeadingTextStyle,
-                ),
-              ),
+            const Image(
+              image: AssetImage('assets/SUConnect-logos_transparent.png'),
             ),
-            const Spacer(),
-            const Padding(
-              padding: EdgeInsets.all(60.0),
-              child: CircleAvatar(
-                radius: 100,
-                backgroundImage: NetworkImage(
-                  'https://giftstrefa.pl/wp-content/uploads/2020/01/vodka-connecting-people-kubek.jpg',
-                ),
-              ),
-            ),
-            const Spacer(),
             Padding(
               padding:
                   const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),

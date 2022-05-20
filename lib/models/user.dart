@@ -65,9 +65,9 @@ class User {
 
   bool publicAccount;
 
-  List<Address> subscribedLocations;
+  List<Address> subscribedLocations = [];
 
-  List<Topic> subscribedTopics;
+  List<Topic> subscribedTopics = [];
 
   List<Post> posts =
       []; //this will be existing in data motel but not in database and will be populated when needed
@@ -77,17 +77,51 @@ class User {
   List<String> bookmarkedPosts =
       []; //this is is a list of post ids that are bookmarked by the user
 
-  User(
-      {required this.id,
-      required this.name,
-      required this.email,
-      required this.username,
-      this.profilePictureUrl,
-      required this.deactivated,
-      required this.publicAccount,
-      required this.subscribedLocations,
-      required this.subscribedTopics,
-      this.bio});
+  User({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.username,
+    this.profilePictureUrl,
+    required this.deactivated,
+    required this.publicAccount,
+    required this.subscribedLocations,
+    required this.subscribedTopics,
+    this.bio,
+  });
+
+  User copyWith({
+    String? id,
+    String? name,
+    String? username,
+    String? email,
+    String? profilePictureUrl,
+    String? bio,
+    bool? deactivated,
+    bool? publicAccount,
+    List<Address>? subscribedLocations,
+    List<Topic>? subscribedTopics,
+    List<Post>? posts,
+    List<String>? sharedPosts,
+    List<String>? bookmarkedPosts,
+  }) {
+    User internalUser = User(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      profilePictureUrl: profilePictureUrl ?? this.profilePictureUrl,
+      bio: bio ?? this.bio,
+      deactivated: deactivated ?? this.deactivated,
+      publicAccount: publicAccount ?? this.publicAccount,
+      subscribedTopics: subscribedTopics ?? this.subscribedTopics,
+      subscribedLocations: subscribedLocations ?? this.subscribedLocations,
+    );
+    internalUser.posts = posts ?? this.posts;
+    internalUser.sharedPosts = sharedPosts ?? this.sharedPosts;
+    internalUser.bookmarkedPosts = bookmarkedPosts ?? this.bookmarkedPosts;
+    return internalUser;
+  }
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   Map<String, dynamic> toJson() => _$UserToJson(this);

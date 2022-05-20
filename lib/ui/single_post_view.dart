@@ -51,44 +51,77 @@ Widget commentCard(BuildContext context, Post comment, Post commentTo) {
       children: [
         Row(
           children: [
-            CircleAvatar(
-              backgroundImage: NetworkImage(
-                userOfComment.profilePictureUrl ?? 'empty',
+            GestureDetector(
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/standaloneProfileView',
+                  arguments: StandaloneProfileViewArguments(
+                    user: userOfComment,
+                  ),
+                );
+              },
+              child: CircleAvatar(
+                backgroundImage: NetworkImage(
+                  userOfComment.profilePictureUrl ?? 'empty',
+                ),
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      userOfComment.name,
-                      style: Theme.of(context).textTheme.bodyText1,
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '@' + userOfComment.username,
-                      style: Theme.of(context).textTheme.bodyText2,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      differenceFromNow.inSeconds > 60
-                          ? differenceFromNow.inMinutes > 60
-                              ? differenceFromNow.inHours > 24
-                                  ? '· ${differenceFromNow.inDays} d'
-                                  : '· ${differenceFromNow.inHours} h'
-                              : '· ${differenceFromNow.inMinutes} m'
-                          : '· ${differenceFromNow.inSeconds} s',
-                    ),
-                  ],
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/standaloneProfileView',
+                      arguments: StandaloneProfileViewArguments(
+                        user: userOfComment,
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      Text(
+                        userOfComment.name,
+                        style: Theme.of(context).textTheme.bodyText1,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '@' + userOfComment.username,
+                        style: Theme.of(context).textTheme.bodyText2,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        differenceFromNow.inSeconds > 60
+                            ? differenceFromNow.inMinutes > 60
+                                ? differenceFromNow.inHours > 24
+                                    ? '· ${differenceFromNow.inDays} d'
+                                    : '· ${differenceFromNow.inHours} h'
+                                : '· ${differenceFromNow.inMinutes} m'
+                            : '· ${differenceFromNow.inSeconds} s',
+                      ),
+                    ],
+                  ),
                 ),
                 Row(
                   children: [
-                    const Text('Replying to '),
-                    Text(
-                      '@' + commentedPostsOwner.username,
-                      style: const TextStyle(
-                        color: Colors.blue,
+                    const Text('Replying to'),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(
+                          context,
+                          '/standaloneProfileView',
+                          arguments: StandaloneProfileViewArguments(
+                            user: commentedPostsOwner,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        '@' + commentedPostsOwner.username,
+                        style: const TextStyle(
+                          color: Colors.blue,
+                        ),
                       ),
                     ),
                   ],
@@ -197,28 +230,39 @@ class SinglePostView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(
-                        postsUser.profilePictureUrl ?? 'empty',
-                      ),
-                      radius: 25,
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/standaloneProfileView',
+                    arguments: StandaloneProfileViewArguments(
+                      user: postsUser,
                     ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        postsUser.name,
-                        style: Theme.of(context).textTheme.headline5,
+                  );
+                },
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(
+                          postsUser.profilePictureUrl ?? 'empty',
+                        ),
+                        radius: 25,
                       ),
-                      Text('@' + postsUser.username),
-                    ],
-                  ),
-                ],
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          postsUser.name,
+                          style: Theme.of(context).textTheme.headline5,
+                        ),
+                        Text('@' + postsUser.username),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),

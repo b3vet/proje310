@@ -45,41 +45,52 @@ class PostCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      postUser.profilePictureUrl ??
-                          'https://image.winudf.com/v2/image1/Y29tLmZpcmV3aGVlbC5ibGFja3NjcmVlbl9zY3JlZW5fMF8xNTgyNjgwMjgzXzA2MQ/screen-0.jpg?fakeurl=1&type=.jpg',
+              GestureDetector(
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/standaloneProfileView',
+                    arguments: StandaloneProfileViewArguments(
+                      user: postUser,
                     ),
-                    radius: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        postUser.name,
-                        style: Theme.of(context).textTheme.bodyText1,
+                  );
+                },
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: NetworkImage(
+                        postUser.profilePictureUrl ??
+                            'https://image.winudf.com/v2/image1/Y29tLmZpcmV3aGVlbC5ibGFja3NjcmVlbl9zY3JlZW5fMF8xNTgyNjgwMjgzXzA2MQ/screen-0.jpg?fakeurl=1&type=.jpg',
                       ),
-                      Text(
-                        '@${postUser.username}',
-                        style: Theme.of(context).textTheme.bodyText2,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    differenceFromNow.inSeconds > 60
-                        ? differenceFromNow.inMinutes > 60
-                            ? differenceFromNow.inHours > 24
-                                ? '· ${differenceFromNow.inDays} d'
-                                : '· ${differenceFromNow.inHours} h'
-                            : '· ${differenceFromNow.inMinutes} m'
-                        : '· ${differenceFromNow.inSeconds} s',
-                  ),
-                ],
+                      radius: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          postUser.name,
+                          style: Theme.of(context).textTheme.bodyText1,
+                        ),
+                        Text(
+                          '@${postUser.username}',
+                          style: Theme.of(context).textTheme.bodyText2,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      differenceFromNow.inSeconds > 60
+                          ? differenceFromNow.inMinutes > 60
+                              ? differenceFromNow.inHours > 24
+                                  ? '· ${differenceFromNow.inDays} d'
+                                  : '· ${differenceFromNow.inHours} h'
+                              : '· ${differenceFromNow.inMinutes} m'
+                          : '· ${differenceFromNow.inSeconds} s',
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 15),
               Text(

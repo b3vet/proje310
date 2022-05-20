@@ -8,9 +8,12 @@ import '../models/user.dart';
 import '../utils/dummy_data.dart';
 
 class ProfileView extends StatefulWidget {
-  const ProfileView({Key? key}) : super(key: key);
+  const ProfileView({
+    Key? key,
+    this.user,
+  }) : super(key: key);
 
-  static const String routeName = '/profile';
+  final User? user;
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -18,17 +21,6 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView>
     with TickerProviderStateMixin {
-  List<Post> userPosts = DummyData.posts
-      .where(
-        (element) => element.userId == 'uuid-96',
-      )
-      .toList();
-  void deletePost(Post post) {
-    setState(() {
-      userPosts.remove(post);
-    });
-  }
-
   void incrementLikes(Post post, User user) {
     setState(() {
       post.likeCount++;
@@ -48,7 +40,14 @@ class _ProfileViewState extends State<ProfileView>
   Widget build(BuildContext context) {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
-        final User user = userProvider.user!;
+        final bool ownUser = widget.user == null ||
+            (widget.user != null && widget.user!.id == userProvider.user!.id);
+        final User user = ownUser ? userProvider.user! : widget.user!;
+        List<Post> userPosts = DummyData.posts
+            .where(
+              (element) => element.userId == user.id,
+            )
+            .toList();
         return SafeArea(
           child: NestedScrollView(
             headerSliverBuilder:
@@ -62,7 +61,7 @@ class _ProfileViewState extends State<ProfileView>
                     background: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        userDetailsColumnWidget(user),
+                        userDetailsColumnWidget(user, ownUser),
                       ],
                     ),
                   ),
@@ -115,7 +114,10 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  Widget userDetailsColumnWidget(User user) {
+  Widget userDetailsColumnWidget(
+    User user,
+    bool ownUser,
+  ) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Column(
@@ -137,12 +139,14 @@ class _ProfileViewState extends State<ProfileView>
                   radius: 45,
                 ),
               ),
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/editProfile');
-                },
-                child: const Text('Edit Profile'),
-              )
+              ownUser
+                  ? OutlinedButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/editProfile');
+                      },
+                      child: const Text('Edit Profile'),
+                    )
+                  : const SizedBox.shrink(),
             ],
           ),
           Row(

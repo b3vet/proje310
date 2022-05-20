@@ -8,6 +8,7 @@ import 'ui/edit_profile.dart';
 import 'ui/login.dart';
 import 'ui/notifications_view.dart';
 import 'ui/profile_view.dart';
+import 'ui/profile_with_scaffold.dart';
 import 'ui/signup.dart';
 import 'ui/single_post_view.dart';
 import 'ui/walkthrough.dart';
@@ -16,7 +17,7 @@ import 'ui/welcome.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  bool welcomeShownBefore = prefs.getBool('walkthroughShown') ?? false;
+  bool welcomeShownBefore = false; //prefs.getBool('walkthroughShown') ?? false;
   runApp(
     MyApp(welcomeShownBefore: welcomeShownBefore),
   );
@@ -79,6 +80,7 @@ class MyApp extends StatelessWidget {
           '/editProfile': (context) => const EditProfile(),
           '/notificationView': (context) => const NotificationView(),
           '/singlePostView': (context) => const SinglePostView(),
+          '/standaloneProfileView': (context) => const StandaloneProfileView(),
         },
         home: welcomeShownBefore == false
             ? const WalkThrough()
@@ -97,14 +99,14 @@ class AuthenticationStatus extends StatefulWidget {
 class _AuthenticationStatusState extends State<AuthenticationStatus> {
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<UserProvider>(
-      context,
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        if (userProvider.user == null) {
+          return const Welcome();
+        } else {
+          return const AppView();
+        }
+      },
     );
-
-    if (provider.user == null) {
-      return const Welcome();
-    } else {
-      return const AppView();
-    }
   }
 }

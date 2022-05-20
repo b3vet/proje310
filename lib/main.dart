@@ -17,7 +17,7 @@ import 'ui/welcome.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  bool welcomeShownBefore = false; //prefs.getBool('walkthroughShown') ?? false;
+  bool welcomeShownBefore = prefs.getBool('walkthroughShown') ?? false;
   runApp(
     MyApp(welcomeShownBefore: welcomeShownBefore),
   );

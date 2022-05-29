@@ -56,14 +56,11 @@ class _WalkThroughState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF2F2F7),
       appBar: AppBar(
         title: Text(
           appBarTitles[page - 1],
           style: const TextStyle(letterSpacing: -1),
         ),
-        backgroundColor: const Color(0xFFD1D1D6),
-        foregroundColor: const Color(0xFF757575),
         centerTitle: true,
       ),
       body: Padding(
@@ -75,21 +72,14 @@ class _WalkThroughState extends State {
             Text(
               pageTitles[page - 1],
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 34,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -1,
-                color: Color(0xFF229A98),
-              ),
+              style: Theme.of(context).textTheme.headline4,
             ),
             //Image.network(imageUrls[page-1],),
             CircleAvatar(
               backgroundColor: const Color(0xFFF2F2F7),
               radius: 200,
-              child: ClipOval(
-                child: Image.network(
-                  imageUrls[page - 1],
-                ),
+              backgroundImage: NetworkImage(
+                imageUrls[page - 1],
               ),
             ),
             Text(
@@ -109,9 +99,6 @@ class _WalkThroughState extends State {
                   onPressed: prevPage,
                   child: const Text(
                     'Prev',
-                    style: TextStyle(
-                      color: Color(0xFF229A98),
-                    ),
                   ),
                 ),
                 Text('$page/$totalPage'),
@@ -119,9 +106,6 @@ class _WalkThroughState extends State {
                   onPressed: page == totalPage ? goToWelcome : nextPage,
                   child: Text(
                     page == totalPage ? 'Go to Welcome' : 'Next',
-                    style: const TextStyle(
-                      color: Color(0xFF229A98),
-                    ),
                   ),
                 ),
               ],

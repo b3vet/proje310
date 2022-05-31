@@ -4,7 +4,7 @@ import '../models/post.dart';
 import '../models/user.dart';
 import 'post_card.dart';
 
-typedef PostAndUserToVoid = void Function(Post, User);
+typedef PostAndUserToVoid = void Function(Post, AppUser);
 
 class PostsTab extends StatelessWidget {
   const PostsTab({

@@ -16,7 +16,7 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final User subjectUser = DummyData.users
+    final AppUser subjectUser = DummyData.users
         .firstWhere((element) => element.id == notification.subjectId);
     final Post post = DummyData.posts
         .firstWhere((element) => element.id == notification.postId);

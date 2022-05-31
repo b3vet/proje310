@@ -123,8 +123,8 @@ class DummyData {
     ),
   ];
 
-  static List<User> users = [
-    User(
+  static List<AppUser> users = [
+    AppUser(
       id: 'uuid-99',
       name: 'Crazy Guy',
       email: 'myemail1@gmail.com',
@@ -137,7 +137,7 @@ class DummyData {
       profilePictureUrl:
           'https://media.moddb.com/images/members/5/4550/4549205/duck.jpg',
     ),
-    User(
+    AppUser(
       id: 'uuid-98',
       name: 'Crazy Guy 2',
       email: 'myemail2@gmail.com',
@@ -150,7 +150,7 @@ class DummyData {
       profilePictureUrl:
           'https://media.moddb.com/images/members/5/4550/4549205/duck.jpg',
     ),
-    User(
+    AppUser(
       id: 'uuid-97',
       name: 'Crazy Guy 3',
       email: 'myemail3@gmail.com',
@@ -163,7 +163,7 @@ class DummyData {
       profilePictureUrl:
           'https://media.moddb.com/images/members/5/4550/4549205/duck.jpg',
     ),
-    User(
+    AppUser(
       id: 'uuid-96',
       name: 'TOSKO',
       email: 'myemail4@gmail.com',

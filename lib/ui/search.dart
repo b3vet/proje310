@@ -63,7 +63,7 @@ class _SearchViewState extends State<SearchView> {
     );
   }
 
-  void incrementLike(Post post, User user) {
+  void incrementLike(Post post, AppUser user) {
     setState(
       () {
         post.likeCount++;

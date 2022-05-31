@@ -25,14 +25,14 @@ class _FeedViewState extends State<FeedView> {
     return _postListView(provider.user!);
   }
 
-  void incrementLike(Post post, User user) {
+  void incrementLike(Post post, AppUser user) {
     setState(() {
       post.likeCount++;
       post.likedBy.add(user.id);
     });
   }
 
-  Widget _postListView(User user) {
+  Widget _postListView(AppUser user) {
     return ListView.builder(
         itemCount: DummyData.posts.length,
         itemBuilder: (context, index) {

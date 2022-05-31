@@ -95,7 +95,7 @@ class _EditProfileState extends State<EditProfile> {
       ),
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
-          final User user = userProvider.user!;
+          final AppUser user = userProvider.user!;
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(2),

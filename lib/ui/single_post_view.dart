@@ -29,13 +29,13 @@ Widget _postImageView(BuildContext context, Post post) {
 }
 
 Widget commentCard(BuildContext context, Post comment, Post commentTo) {
-  final User userOfComment = DummyData.users.firstWhere(
+  final AppUser userOfComment = DummyData.users.firstWhere(
     (element) => element.id == comment.userId,
   );
-  final User commentedPostsOwner = DummyData.users.firstWhere(
+  final AppUser commentedPostsOwner = DummyData.users.firstWhere(
     (element) => element.id == commentTo.userId,
   );
-  final User currentUser = Provider.of<UserProvider>(context).user!;
+  final AppUser currentUser = Provider.of<UserProvider>(context).user!;
   Duration differenceFromNow = DateTime.now().difference(comment.createdAt);
   return GestureDetector(
     onTap: () {
@@ -205,9 +205,9 @@ class SinglePostView extends StatelessWidget {
     final Post post =
         (ModalRoute.of(context)!.settings.arguments as SinglePostViewArguments)
             .post;
-    final User postsUser =
+    final AppUser postsUser =
         DummyData.users.firstWhere((element) => element.id == post.userId);
-    final User currentUser =
+    final AppUser currentUser =
         Provider.of<UserProvider>(context, listen: false).user!;
     final List<Post> postComments = post.comments.isNotEmpty
         ? post.comments

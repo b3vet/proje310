@@ -8,6 +8,6 @@ class SinglePostViewArguments {
 }
 
 class StandaloneProfileViewArguments {
-  final User? user;
+  final AppUser? user;
   StandaloneProfileViewArguments({this.user});
 }

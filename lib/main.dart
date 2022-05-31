@@ -4,8 +4,11 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './utils/colors.dart';
 import 'logic/user_provider.dart';
+import 'ui/add_details_after_signup.dart';
 import 'ui/app_view.dart';
 import 'ui/edit_profile.dart';
+import 'ui/google_login.dart';
+import 'ui/google_signup.dart';
 import 'ui/login.dart';
 import 'ui/notifications_view.dart';
 import 'ui/profile_view.dart';
@@ -164,6 +167,9 @@ class MyApp extends StatelessWidget {
           '/notificationView': (context) => const NotificationView(),
           '/singlePostView': (context) => const SinglePostView(),
           '/standaloneProfileView': (context) => const StandaloneProfileView(),
+          '/googleLogin': (context) => const GoogleLogin(),
+          '/googleSignup': (context) => const GoogleSignup(),
+          '/addDetailsAfterSignup': (context) => const AddDetailsAfterSignUp(),
         },
         home: welcomeShownBefore == false
             ? const WalkThrough()

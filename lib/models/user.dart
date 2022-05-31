@@ -51,7 +51,7 @@ class Topic {
 }
 
 @JsonSerializable()
-class User {
+class AppUser {
   String id;
   String name;
   String username;
@@ -77,7 +77,7 @@ class User {
   List<String> bookmarkedPosts =
       []; //this is is a list of post ids that are bookmarked by the user
 
-  User({
+  AppUser({
     required this.id,
     required this.name,
     required this.email,
@@ -90,7 +90,7 @@ class User {
     this.bio,
   });
 
-  User copyWith({
+  AppUser copyWith({
     String? id,
     String? name,
     String? username,
@@ -105,7 +105,7 @@ class User {
     List<String>? sharedPosts,
     List<String>? bookmarkedPosts,
   }) {
-    User internalUser = User(
+    AppUser internalUser = AppUser(
       id: id ?? this.id,
       name: name ?? this.name,
       username: username ?? this.username,
@@ -123,6 +123,7 @@ class User {
     return internalUser;
   }
 
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
-  Map<String, dynamic> toJson() => _$UserToJson(this);
+  factory AppUser.fromJson(Map<String, dynamic> json) =>
+      _$AppUserFromJson(json);
+  Map<String, dynamic> toJson() => _$AppUserToJson(this);
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/analytics.dart';
 import '../utils/styles.dart';
 
 class Welcome extends StatelessWidget {
@@ -6,6 +7,7 @@ class Welcome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Welcome Screen');
     return Scaffold(
       body: SafeArea(
         maintainBottomViewPadding: false,

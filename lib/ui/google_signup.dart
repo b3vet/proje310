@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
+import '../services/analytics.dart';
 import '../utils/screenSizes.dart';
 
 class GoogleSignup extends StatelessWidget {
@@ -62,6 +63,7 @@ class GoogleSignup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Signup Screen');
     return Scaffold(
       body: SafeArea(
         child: Container(

@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './utils/colors.dart';
 import 'logic/user_provider.dart';
+import 'models/user.dart';
 import 'ui/add_details_after_signup.dart';
 import 'ui/app_view.dart';
 import 'ui/edit_profile.dart';
@@ -22,8 +26,15 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   bool welcomeShownBefore = prefs.getBool('walkthroughShown') ?? false;
+  String? storedUserStr = prefs.getString('user');
+  AppUser? storedUser = storedUserStr != null
+      ? AppUser.fromJson(jsonDecode(storedUserStr))
+      : null;
   runApp(
-    MyApp(welcomeShownBefore: welcomeShownBefore),
+    MyApp(
+      welcomeShownBefore: welcomeShownBefore,
+      storedUser: storedUser,
+    ),
   );
 }
 
@@ -100,31 +111,12 @@ class ErrorScreen extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({required this.welcomeShownBefore, Key? key}) : super(key: key);
+  MyApp({required this.storedUser, required this.welcomeShownBefore, Key? key})
+      : super(key: key);
   final bool welcomeShownBefore;
+  final AppUser? storedUser;
 
   final Future<FirebaseApp> _init = Firebase.initializeApp();
-  /*
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _init,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return ErrorScreen(message: snapshot.error.toString());
-        }
-        if (snapshot.connectionState == ConnectionState.done) {
-          return StreamProvider<User?>.value(
-            value: AuthService().user,
-            initialData: null,
-            child: AuthenticationStatus(),
-          );
-        }
-        return const WaitingScreen();
-      },
-    );
-    THESE PARTS WILL BE ADDED IN THE NEXT STEP
-  } */
 
   @override
   Widget build(BuildContext context) {
@@ -139,18 +131,20 @@ class MyApp extends StatelessWidget {
           );
         }
         if (snapshot.connectionState == ConnectionState.done) {
-          return errorlessApp();
+          FlutterError.onError =
+              FirebaseCrashlytics.instance.recordFlutterFatalError;
+          return errorlessApp(storedUser);
         }
         return const MaterialApp(home: WaitingScreen());
       },
     );
   }
 
-  Widget errorlessApp() {
+  Widget errorlessApp(AppUser? storedUser) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<UserProvider>(
-          create: (context) => UserProvider(),
+          create: (context) => UserProvider(storedUser),
         ),
       ],
       child: MaterialApp(

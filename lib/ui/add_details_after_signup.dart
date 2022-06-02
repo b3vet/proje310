@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
+import '../services/analytics.dart';
 import '../utils/dimensions.dart';
 import '../utils/screenSizes.dart';
 import '../utils/styles.dart';
@@ -73,6 +74,7 @@ class _AddDetailsAfterSignUpState extends State<AddDetailsAfterSignUp> {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Add Details After Signup Screen');
     return Scaffold(
       body: Padding(
         padding: Dimen.regularParentPadding,

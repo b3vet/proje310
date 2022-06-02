@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../services/analytics.dart';
+
 class WalkThrough extends StatefulWidget {
   const WalkThrough({Key? key}) : super(key: key);
 
@@ -55,6 +57,7 @@ class _WalkThroughState extends State {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Walkthrough');
     return Scaffold(
       appBar: AppBar(
         title: Text(

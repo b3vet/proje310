@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
+import '../services/analytics.dart';
 import '../utils/dummy_data.dart';
 import '../utils/route_args.dart';
 import '../utils/screenSizes.dart';
@@ -202,6 +203,7 @@ class SinglePostView extends StatelessWidget {
   const SinglePostView({Key? key}) : super(key: key);
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Single Post Screen');
     final Post post =
         (ModalRoute.of(context)!.settings.arguments as SinglePostViewArguments)
             .post;

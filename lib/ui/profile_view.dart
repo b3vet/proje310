@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
+import '../services/analytics.dart';
 import '../utils/dummy_data.dart';
 
 class ProfileView extends StatefulWidget {
@@ -38,11 +39,13 @@ class _ProfileViewState extends State<ProfileView>
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Profile Screen');
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final bool ownUser = widget.user == null ||
             (widget.user != null && widget.user!.id == userProvider.user!.id);
         final AppUser user = ownUser ? userProvider.user! : widget.user!;
+        print(user.id);
         List<Post> userPosts = DummyData.posts
             .where(
               (element) => element.userId == user.id,

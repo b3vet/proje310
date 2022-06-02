@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/notification.dart';
 import '../models/post.dart';
 import '../models/user.dart';
+import '../services/analytics.dart';
 import '../utils/dummy_data.dart';
 import '../utils/route_args.dart';
 import '../utils/styles.dart';
@@ -16,6 +17,7 @@ class NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Notifications Screen');
     final AppUser subjectUser = DummyData.users
         .firstWhere((element) => element.id == notification.subjectId);
     final Post post = DummyData.posts

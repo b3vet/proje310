@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
+import '../services/analytics.dart';
 import '../utils/dummy_data.dart';
 import 'post_card.dart';
 
@@ -18,6 +19,7 @@ class _FeedViewState extends State<FeedView> {
   List<Post> statePosts = DummyData.posts;
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Feed Screen');
     final provider = Provider.of<UserProvider>(
       context,
       listen: false,

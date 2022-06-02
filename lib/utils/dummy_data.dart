@@ -39,7 +39,7 @@ class DummyData {
       comments: [],
       commentCount: 0,
       likeCount: 2,
-      userId: 'uuid-96',
+      userId: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
       imageUrl:
           'https://cdn.cimri.io/image/1000x1000/philipsessentialwebeyazledlamba_205832953.jpg',
     ),
@@ -51,7 +51,7 @@ class DummyData {
       comments: ['someuuid-11', 'someuuid-12'],
       commentCount: 2,
       likeCount: 2,
-      userId: 'uuid-96',
+      userId: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
       imageUrl:
           'https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/iphone-13-midnight-select-2021?wid=940&hei=1112&fmt=png-alpha&.v=1645572315913',
     ),
@@ -62,7 +62,7 @@ class DummyData {
       comments: [],
       commentCount: 0,
       likeCount: 2,
-      userId: 'uuid-96',
+      userId: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
     ),
     Post(
       id: 'someuuid-7',
@@ -71,7 +71,7 @@ class DummyData {
       comments: [],
       commentCount: 0,
       likeCount: 5,
-      userId: 'uuid-96',
+      userId: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
     ),
     Post(
       id: 'someuuid-8',
@@ -80,7 +80,7 @@ class DummyData {
       comments: [],
       commentCount: 0,
       likeCount: 4,
-      userId: 'uuid-96',
+      userId: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
     ),
     Post(
       id: 'someuuid-9',
@@ -89,7 +89,7 @@ class DummyData {
       comments: [],
       commentCount: 0,
       likeCount: 2,
-      userId: 'uuid-96',
+      userId: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
     ),
     Post(
       id: 'someuuid-10',
@@ -98,7 +98,7 @@ class DummyData {
       comments: [],
       commentCount: 0,
       likeCount: 2,
-      userId: 'uuid-96',
+      userId: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
     ),
     Post(
       id: 'someuuid-11',
@@ -175,7 +175,20 @@ class DummyData {
       bio: 'I am a crazy guy 4 welcome to my account!',
       profilePictureUrl:
           'https://im.haberturk.com/2019/12/27/ver1577449006/2553553_810x458.jpg',
-    )
+    ),
+    AppUser(
+      id: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
+      name: 'Crazy Guy',
+      email: 'myemail1@gmail.com',
+      deactivated: false,
+      publicAccount: true,
+      subscribedLocations: [],
+      subscribedTopics: [],
+      username: 'b3vet',
+      bio: 'I am a crazy guy welcome to my account!',
+      profilePictureUrl:
+          'https://media.moddb.com/images/members/5/4550/4549205/duck.jpg',
+    ),
   ];
 
   static List<AppNotification> notifs = [

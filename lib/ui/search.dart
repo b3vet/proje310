@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
+import '../services/analytics.dart';
 import '../utils/dummy_data.dart';
 import 'post_card.dart';
 
@@ -74,6 +75,7 @@ class _SearchViewState extends State<SearchView> {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Search Screen');
     return SingleChildScrollView(
       child: Column(
         children: [

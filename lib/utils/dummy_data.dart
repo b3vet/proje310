@@ -176,19 +176,6 @@ class DummyData {
       profilePictureUrl:
           'https://im.haberturk.com/2019/12/27/ver1577449006/2553553_810x458.jpg',
     ),
-    AppUser(
-      id: 'f1x00kUTjBNCY17VfaiiPz0FGbH2',
-      name: 'Crazy Guy',
-      email: 'myemail1@gmail.com',
-      deactivated: false,
-      publicAccount: true,
-      subscribedLocations: [],
-      subscribedTopics: [],
-      username: 'b3vet',
-      bio: 'I am a crazy guy welcome to my account!',
-      profilePictureUrl:
-          'https://media.moddb.com/images/members/5/4550/4549205/duck.jpg',
-    ),
   ];
 
   static List<AppNotification> notifs = [

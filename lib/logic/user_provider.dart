@@ -7,10 +7,12 @@ import 'package:project310/services/db.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user.dart';
+import '../utils/dummy_data.dart';
 
 class UserProvider extends ChangeNotifier {
   UserProvider(AppUser? storedUser) {
     if (storedUser != null) {
+      DummyData.users.add(storedUser);
       _user = storedUser;
     }
   }
@@ -54,6 +56,7 @@ class UserProvider extends ChangeNotifier {
     if (user == null) {
       return null;
     }
+    DummyData.users.add(user);
     _user = user;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(_user!.toJson()));
@@ -74,6 +77,12 @@ class UserProvider extends ChangeNotifier {
     }
 
     User firebaseUser = creds.user!;
+
+    AppUser? checkuser = await db.getUser(firebaseUser.uid);
+
+    if (checkuser != null) {
+      return 'An account with the used email already exists. Please use login!';
+    }
     AppUser user = AppUser(
       deactivated: false,
       email: firebaseUser.email!,

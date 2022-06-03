@@ -80,13 +80,20 @@ class GoogleSignup extends StatelessWidget {
                   var signupResult =
                       await Provider.of<UserProvider>(context, listen: false)
                           .signup();
-                  print(signupResult);
                   if (signupResult != 1) {
-                    _showDialog(
-                      'Signup Error',
-                      'Could not signup!',
-                      context,
-                    );
+                    if (signupResult is String) {
+                      _showDialog(
+                        'Account already exists!',
+                        signupResult,
+                        context,
+                      );
+                    } else {
+                      _showDialog(
+                        'Signup Error',
+                        'Could not signup!',
+                        context,
+                      );
+                    }
                   } else {
                     Navigator.pushNamedAndRemoveUntil(
                       context,

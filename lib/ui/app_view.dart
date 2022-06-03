@@ -44,9 +44,10 @@ class _AppViewState extends State<AppView> {
           TextButton(
             onPressed: () => throw Exception(),
             child: const Text(
-              'Throw Test Exception',
+              'Test Exception',
               style: TextStyle(
                 color: Colors.white,
+                fontSize: 12,
               ),
             ),
           ),

@@ -53,8 +53,9 @@ class _AppViewState extends State<AppView> {
           if (_selectedIndex == 3)
             IconButton(
               icon: const Icon(Icons.logout_outlined),
-              onPressed: () {
-                Provider.of<UserProvider>(context, listen: false).logout();
+              onPressed: () async {
+                await Provider.of<UserProvider>(context, listen: false)
+                    .logout();
                 Navigator.pushNamedAndRemoveUntil(
                   context,
                   '/welcome',

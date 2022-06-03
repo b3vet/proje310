@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
 import '../services/analytics.dart';
-import '../utils/dimensions.dart';
 import '../utils/screenSizes.dart';
 
 class GoogleLogin extends StatelessWidget {
@@ -78,9 +77,21 @@ class GoogleLogin extends StatelessWidget {
                   minimumSize: const Size(200, 50),
                 ),
                 onPressed: () async {
-                  var loginResult =
-                      await Provider.of<UserProvider>(context, listen: false)
-                          .login();
+                  dynamic loginResult;
+                  try {
+                    loginResult =
+                        await Provider.of<UserProvider>(context, listen: false)
+                            .login();
+                  } catch (e) {
+                    print(e);
+                    _showDialog(
+                      'Login Error',
+                      'Could not login!',
+                      context,
+                    );
+                    return;
+                  }
+
                   if (loginResult == null) {
                     _showDialog(
                       'User not found!',

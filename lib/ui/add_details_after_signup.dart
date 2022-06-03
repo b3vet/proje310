@@ -167,17 +167,19 @@ class _AddDetailsAfterSignUpState extends State<AddDetailsAfterSignUp> {
                 ),
               ),
               OutlinedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
 
-                    //username de kaydetmen lazım
-                    //add username control here
-                    //await loginUser(); add this line in the next step
-                    Provider.of<UserProvider>(
+                    UserProvider provide = Provider.of<UserProvider>(
                       context,
                       listen: false,
-                    ).addBioAndUsername(bio, username);
+                    );
+                    await provide.addBioAndUsername(
+                      provide.user!.id,
+                      bio,
+                      username,
+                    );
                     Navigator.pushNamedAndRemoveUntil(
                       context,
                       '/appView',

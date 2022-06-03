@@ -87,6 +87,7 @@ class UserProvider extends ChangeNotifier {
     );
 
     await db.saveUser(user);
+    print('user saved');
     _user = user;
     return 1;
   }
@@ -98,8 +99,8 @@ class UserProvider extends ChangeNotifier {
     _user = null;
   }
 
-  Future<void> addBioAndUsername(String bio, String username) async {
-    //dbconnection.updateUser(bio, username); next step
+  Future<void> addBioAndUsername(String id, String bio, String username) async {
+    await db.updateUserBioAndUserName(id, bio, username);
 
     _user = _user!.copyWith(bio: bio, username: username);
     final prefs = await SharedPreferences.getInstance();

@@ -45,7 +45,6 @@ class _ProfileViewState extends State<ProfileView>
         final bool ownUser = widget.user == null ||
             (widget.user != null && widget.user!.id == userProvider.user!.id);
         final AppUser user = ownUser ? userProvider.user! : widget.user!;
-        print(user.id);
         List<Post> userPosts = DummyData.posts
             .where(
               (element) => element.userId == user.id,

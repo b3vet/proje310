@@ -5,6 +5,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import './utils/colors.dart';
 import 'logic/user_provider.dart';
 import 'models/user.dart';
@@ -30,6 +31,7 @@ void main() async {
   AppUser? storedUser = storedUserStr != null
       ? AppUser.fromJson(jsonDecode(storedUserStr))
       : null;
+  await Firebase.initializeApp();
   runApp(
     MyApp(
       welcomeShownBefore: welcomeShownBefore,
@@ -111,33 +113,15 @@ class ErrorScreen extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
-  MyApp({required this.storedUser, required this.welcomeShownBefore, Key? key})
+  const MyApp(
+      {required this.storedUser, required this.welcomeShownBefore, Key? key})
       : super(key: key);
   final bool welcomeShownBefore;
   final AppUser? storedUser;
 
-  final Future<FirebaseApp> _init = Firebase.initializeApp();
-
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _init,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return MaterialApp(
-            home: ErrorScreen(
-              message: snapshot.error.toString(),
-            ),
-          );
-        }
-        if (snapshot.connectionState == ConnectionState.done) {
-          FlutterError.onError =
-              FirebaseCrashlytics.instance.recordFlutterFatalError;
-          return errorlessApp(storedUser);
-        }
-        return const MaterialApp(home: WaitingScreen());
-      },
-    );
+    return errorlessApp(storedUser);
   }
 
   Widget errorlessApp(AppUser? storedUser) {

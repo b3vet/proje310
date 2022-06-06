@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../utils/dimensions.dart';
+import '../services/analytics.dart';
 import '../utils/styles.dart';
 
 class Welcome extends StatelessWidget {
@@ -7,6 +7,7 @@ class Welcome extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Welcome Screen');
     return Scaffold(
       body: SafeArea(
         maintainBottomViewPadding: false,
@@ -26,7 +27,7 @@ class Welcome extends StatelessWidget {
                     flex: 1,
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/signup');
+                        Navigator.pushNamed(context, '/googleSignup');
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12.0),
@@ -47,7 +48,7 @@ class Welcome extends StatelessWidget {
                     flex: 1,
                     child: OutlinedButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, '/login');
+                        Navigator.pushNamed(context, '/googleLogin');
                       },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12.0),

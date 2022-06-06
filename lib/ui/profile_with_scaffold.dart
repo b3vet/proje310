@@ -15,7 +15,7 @@ class StandaloneProfileView extends StatefulWidget {
 class _StandaloneProfileViewState extends State<StandaloneProfileView> {
   @override
   Widget build(BuildContext context) {
-    final User user = (ModalRoute.of(context)!.settings.arguments
+    final AppUser user = (ModalRoute.of(context)!.settings.arguments
             as StandaloneProfileViewArguments)
         .user!;
     return Scaffold(

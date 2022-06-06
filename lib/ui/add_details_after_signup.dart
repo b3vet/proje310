@@ -1,30 +1,26 @@
-import 'dart:io' show Platform;
-import 'package:email_validator/email_validator.dart';
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
-import '../models/user.dart';
+import '../services/analytics.dart';
 import '../utils/dimensions.dart';
 import '../utils/screenSizes.dart';
 import '../utils/styles.dart';
 
-class SignUp extends StatefulWidget {
-  const SignUp({Key? key}) : super(key: key);
+class AddDetailsAfterSignUp extends StatefulWidget {
+  const AddDetailsAfterSignUp({Key? key}) : super(key: key);
 
   @override
-  _SignUpState createState() => _SignUpState();
-
-  static const String routeName = '/signup';
+  State<AddDetailsAfterSignUp> createState() => _AddDetailsAfterSignUpState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _AddDetailsAfterSignUpState extends State<AddDetailsAfterSignUp> {
   final _formKey = GlobalKey<FormState>();
-  String email = '';
-  String pass = '';
   String username = '';
-  String fullname = '';
+  String bio = '';
 
   Future<void> _showDialog(
       String title, String message, BuildContext context) async {
@@ -78,6 +74,7 @@ class _SignUpState extends State<SignUp> {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Add Details After Signup Screen');
     return Scaffold(
       body: Padding(
         padding: Dimen.regularParentPadding,
@@ -87,136 +84,9 @@ class _SignUpState extends State<SignUp> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                width: screenWidth(context, dividedBy: 1.1),
-                child: TextFormField(
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    label: SizedBox(
-                      width: 100,
-                      child: Row(
-                        children: const [
-                          Icon(Icons.email),
-                          SizedBox(width: 4),
-                          Text('Email'),
-                        ],
-                      ),
-                    ),
-                    fillColor:
-                        Theme.of(context).textSelectionTheme.selectionColor,
-                    filled: true,
-                    labelStyle: kBoldLabelStyle,
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value != null) {
-                      if (value.isEmpty) {
-                        return 'Cannot leave e-mail empty';
-                      }
-                      if (!EmailValidator.validate(value)) {
-                        return 'Please enter a valid e-mail address';
-                      }
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    email = value ?? '';
-                  },
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                width: screenWidth(context, dividedBy: 1.1),
-                child: TextFormField(
-                  keyboardType: TextInputType.text,
-                  obscureText: true,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    label: SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Icon(Icons.password),
-                          SizedBox(width: 4),
-                          Text('Password'),
-                        ],
-                      ),
-                    ),
-                    fillColor:
-                        Theme.of(context).textSelectionTheme.selectionColor,
-                    filled: true,
-                    labelStyle: kBoldLabelStyle,
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value != null) {
-                      if (value.isEmpty) {
-                        return 'Cannot leave password empty';
-                      }
-                      if (value.length < 6) {
-                        return 'Password too short';
-                      }
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    pass = value ?? '';
-                  },
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                width: screenWidth(context, dividedBy: 1.1),
-                child: TextFormField(
-                  keyboardType: TextInputType.text,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    label: SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Icon(Icons.person_outline),
-                          SizedBox(width: 4),
-                          Text('Full Name'),
-                        ],
-                      ),
-                    ),
-                    fillColor:
-                        Theme.of(context).textSelectionTheme.selectionColor,
-                    filled: true,
-                    labelStyle: kBoldLabelStyle,
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value != null) {
-                      if (value.isEmpty) {
-                        return 'Cannot leave Name empty';
-                      }
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    fullname = value ?? '';
-                  },
-                ),
+              Text(
+                'Add more details about yourself',
+                style: Theme.of(context).textTheme.headline4,
               ),
               Container(
                 padding: const EdgeInsets.all(8),
@@ -260,18 +130,56 @@ class _SignUpState extends State<SignUp> {
                   },
                 ),
               ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                width: screenWidth(context, dividedBy: 1.1),
+                child: TextFormField(
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 3,
+                  maxLength: 255,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    label: SizedBox(
+                      width: 150,
+                      child: Row(
+                        children: const [
+                          Icon(Icons.account_box_outlined),
+                          SizedBox(width: 4),
+                          Text('bio'),
+                        ],
+                      ),
+                    ),
+                    fillColor:
+                        Theme.of(context).textSelectionTheme.selectionColor,
+                    filled: true,
+                    labelStyle: kBoldLabelStyle,
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  onSaved: (value) {
+                    bio = value ?? '';
+                  },
+                ),
+              ),
               OutlinedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
 
-                    //username de kaydetmen lazım
-                    //add username control here
-                    //await loginUser(); add this line in the next step
-                    Provider.of<UserProvider>(
+                    UserProvider provide = Provider.of<UserProvider>(
                       context,
                       listen: false,
-                    ).login();
+                    );
+                    await provide.addBioAndUsername(
+                      provide.user!.id,
+                      bio,
+                      username,
+                    );
                     Navigator.pushNamedAndRemoveUntil(
                       context,
                       '/appView',
@@ -285,7 +193,7 @@ class _SignUpState extends State<SignUp> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 12.0),
                   child: Text(
-                    'Sign Up',
+                    'Continue',
                     style: kButtonLightTextStyle,
                   ),
                 ),

@@ -184,21 +184,7 @@ class _LoginState extends State<Login> {
                       Provider.of<UserProvider>(
                         context,
                         listen: false,
-                      ).add(
-                        User(
-                          id: 'uuid-96',
-                          name: 'TOSKO',
-                          email: 'myemail4@gmail.com',
-                          deactivated: false,
-                          publicAccount: true,
-                          subscribedLocations: [],
-                          subscribedTopics: [],
-                          username: 'crazyguy68',
-                          bio: 'I am a crazy guy 4 welcome to my account!',
-                          profilePictureUrl:
-                              'https://im.haberturk.com/2019/12/27/ver1577449006/2553553_810x458.jpg',
-                        ),
-                      );
+                      ).login();
                       Navigator.pushNamedAndRemoveUntil(
                         context,
                         '/appView',

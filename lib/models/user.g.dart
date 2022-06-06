@@ -42,7 +42,7 @@ Map<String, dynamic> _$TopicToJson(Topic instance) => <String, dynamic>{
       'id': instance.id,
     };
 
-User _$UserFromJson(Map<String, dynamic> json) => User(
+AppUser _$AppUserFromJson(Map<String, dynamic> json) => AppUser(
       id: json['id'] as String,
       name: json['name'] as String,
       email: json['email'] as String,
@@ -68,7 +68,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
           .map((e) => e as String)
           .toList();
 
-Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
+Map<String, dynamic> _$AppUserToJson(AppUser instance) => <String, dynamic>{
       'id': instance.id,
       'name': instance.name,
       'username': instance.username,

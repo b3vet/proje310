@@ -5,7 +5,9 @@ import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../services/analytics.dart';
+import '../services/db.dart';
 import '../utils/dummy_data.dart';
+import '../utils/screenSizes.dart';
 import 'post_card.dart';
 
 class FeedView extends StatefulWidget {
@@ -16,13 +18,12 @@ class FeedView extends StatefulWidget {
 }
 
 class _FeedViewState extends State<FeedView> {
-  List<Post> statePosts = DummyData.posts;
   @override
   Widget build(BuildContext context) {
     AppAnalytics.setCurrentName('Feed Screen');
     final provider = Provider.of<UserProvider>(
       context,
-      listen: false,
+      listen: true,
     );
     return _postListView(provider.user!);
   }
@@ -34,89 +35,164 @@ class _FeedViewState extends State<FeedView> {
     });
   }
 
-  Widget _postListView(AppUser user) {
-    return ListView.builder(
-        itemCount: DummyData.posts.length,
-        itemBuilder: (context, index) {
-          Post post = DummyData.posts[index];
-          return PostCard(
-            post: DummyData.posts[index],
-            incrementLike: incrementLike,
-          );
-        });
-  }
-}
-
-Widget _authorView() {
-  const double diameter = 30.0;
-  return const CircleAvatar(
-    radius: diameter,
-    backgroundImage: NetworkImage(
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR63KoribGVDB_dswx8iUX99udIebJK_EsaYYTwg2vJoIeIECXhO8iWnI5VBU64wLJ-8gg&usqp=CAU'),
-  );
-}
-
-Widget _postCaption() {
-  return const Padding(
-    padding: EdgeInsets.all(0),
-    child: Text(
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer dolor orci, maximus nec finibus vitae, laoreet vitae mauris. In blandit non velit vel pulvinar. Aenean ut leo justo. Praesent a diam eget sapien tempus hendrerit.',
-      style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w400),
-    ),
-  );
-}
-
-Widget _postImageView() {
-  return Container(
-    padding: const EdgeInsets.only(top: 10.0),
-    child: Image.network(
-      'https://japonoloji.com/wp-content/uploads/2019/02/dororo-anime.jpg',
-      fit: BoxFit.cover,
-    ),
-  );
-}
-
-Widget _viewCommentAndLikeButtons() {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const Text(
-        'View Comments',
-        style: TextStyle(
-            fontSize: 13.0, color: Colors.grey, fontWeight: FontWeight.w400),
-      ),
-      IconButton(
-          onPressed: () => print('Liked'),
-          icon: const Icon(
-            Icons.thumb_up,
-            color: Colors.grey,
-          ))
-    ],
-  );
-}
-
-Widget _postView() {
-  return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _authorView(),
-        Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _postCaption(),
-                _postImageView(),
-                _viewCommentAndLikeButtons()
-              ],
-            ),
+  void showAddPost(BuildContext context, DB db, AppUser user) {
+    String postText = '';
+    showModalBottomSheet(
+      context: context,
+      builder: (buildContext) {
+        return SizedBox(
+          height: screenHeight(context),
+          width: screenWidth(context),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    child: const Text('cancel'),
+                    onPressed: () {
+                      Navigator.pop(buildContext);
+                    },
+                  ),
+                  TextButton(
+                    child: const Text('post'),
+                    onPressed: () async {
+                      Post toSend = Post(
+                        id: 'dummyid',
+                        text: postText,
+                        likedBy: [],
+                        comments: [],
+                        userId: user.id,
+                        commentCount: 0,
+                        likeCount: 0,
+                        shareCount: 0,
+                      );
+                      await db.addPost(toSend, user);
+                      Navigator.pop(buildContext);
+                      setState(() {});
+                    },
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                width: screenWidth(context),
+                child: TextFormField(
+                  autofocus: true,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 5,
+                  maxLength: 255,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    postText = value;
+                  },
+                ),
+              ),
+            ],
           ),
-        )
-      ],
-    ),
-  );
+        );
+      },
+    );
+  }
+
+  Widget _postListView(AppUser user) {
+    final DB db = DB();
+    Future<List<Post>?> feedPosts = db.getFeed(user);
+    return FutureBuilder<List<Post>?>(
+      future: feedPosts,
+      builder: (BuildContext context, AsyncSnapshot<List<Post>?> snapshot) {
+        print(snapshot.data);
+        if (snapshot.hasData) {
+          if (snapshot.data == null ||
+              (snapshot.data != null && snapshot.data!.isEmpty)) {
+            return Stack(
+              children: [
+                const Align(
+                  alignment: Alignment.center,
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'No one you follow shared a post before! Follow some accounts to see posts!',
+                    ),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Ink(
+                      decoration: ShapeDecoration(
+                        color: Theme.of(context).primaryColor,
+                        shape: const CircleBorder(),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.add),
+                        color: Colors.white,
+                        onPressed: () {
+                          showAddPost(context, db, user);
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+          return Stack(children: [
+            ListView.builder(
+              itemBuilder: ((context, index) => PostCard(
+                    incrementLike: incrementLike,
+                    post: snapshot.data![index],
+                  )),
+              itemCount: snapshot.data!.length,
+            ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Ink(
+                  decoration: ShapeDecoration(
+                    color: Theme.of(context).primaryColor,
+                    shape: const CircleBorder(),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.add),
+                    color: Colors.white,
+                    onPressed: () {
+                      showAddPost(context, db, user);
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ]);
+        } else if (snapshot.hasError) {
+          return const Center(
+            child: Text('Unexpected Error'),
+          );
+        } else {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              SizedBox(
+                width: 60,
+                height: 60,
+                child: CircularProgressIndicator(),
+              ),
+              Text('Loading..'),
+            ],
+          );
+        }
+      },
+    );
+  }
 }

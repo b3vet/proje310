@@ -41,16 +41,6 @@ class _AppViewState extends State<AppView> {
       appBar: AppBar(
         title: const Text('SUConnect'),
         actions: [
-          TextButton(
-            onPressed: () => throw Exception(),
-            child: const Text(
-              'Test Exception',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-            ),
-          ),
           if (_selectedIndex == 3)
             IconButton(
               icon: const Icon(Icons.logout_outlined),

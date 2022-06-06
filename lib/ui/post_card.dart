@@ -14,10 +14,12 @@ typedef PostAndUserToVoid = void Function(Post, AppUser);
 class PostCard extends StatelessWidget {
   final Post post;
   final PostAndUserToVoid incrementLike;
+  final String? sharedBy;
   const PostCard({
     Key? key,
     required this.post,
     required this.incrementLike,
+    this.sharedBy,
   }) : super(key: key);
 
   @override

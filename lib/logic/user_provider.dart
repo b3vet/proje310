@@ -6,6 +6,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:project310/services/db.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/post.dart';
 import '../models/user.dart';
 import '../utils/dummy_data.dart';
 
@@ -114,6 +115,11 @@ class UserProvider extends ChangeNotifier {
     _user = _user!.copyWith(bio: bio, username: username);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(_user!.toJson()));
+  }
+
+  void addPost(Post post) {
+    _user!.posts.add(post.id);
+    notifyListeners();
   }
 
   void updateUser(AppUser user) {

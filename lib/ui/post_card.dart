@@ -9,7 +9,7 @@ import '../utils/dummy_data.dart';
 import '../utils/route_args.dart';
 import '../utils/screenSizes.dart';
 
-typedef PostAndUserToVoid = void Function(Post, User);
+typedef PostAndUserToVoid = void Function(Post, AppUser);
 
 class PostCard extends StatelessWidget {
   final Post post;
@@ -22,8 +22,9 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    User currentUser = Provider.of<UserProvider>(context, listen: false).user!;
-    User postUser = DummyData.users.firstWhere(
+    AppUser currentUser =
+        Provider.of<UserProvider>(context, listen: false).user!;
+    AppUser postUser = DummyData.users.firstWhere(
       (element) => element.id == post.userId,
     );
     Duration differenceFromNow = DateTime.now().difference(post.createdAt);

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
 import '../models/user.dart';
+import '../services/analytics.dart';
 import '../utils/screenSizes.dart';
 
 class EditProfile extends StatefulWidget {
@@ -87,6 +88,7 @@ class _EditProfileState extends State<EditProfile> {
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Edit Profile Screen');
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -95,7 +97,7 @@ class _EditProfileState extends State<EditProfile> {
       ),
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
-          final User user = userProvider.user!;
+          final AppUser user = userProvider.user!;
           return SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(2),

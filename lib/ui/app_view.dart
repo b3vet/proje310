@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../logic/user_provider.dart';
 import 'feed.dart';
 import 'notifications_view.dart';
 import 'profile_view.dart';
@@ -38,6 +40,31 @@ class _AppViewState extends State<AppView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('SUConnect'),
+        actions: [
+          TextButton(
+            onPressed: () => throw Exception(),
+            child: const Text(
+              'Test Exception',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          if (_selectedIndex == 3)
+            IconButton(
+              icon: const Icon(Icons.logout_outlined),
+              onPressed: () async {
+                await Provider.of<UserProvider>(context, listen: false)
+                    .logout();
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/welcome',
+                  (route) => false,
+                );
+              },
+            )
+        ],
       ),
       body: IndexedStack(
         index: _selectedIndex,

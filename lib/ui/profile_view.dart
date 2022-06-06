@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
+import '../services/analytics.dart';
 import '../utils/dummy_data.dart';
 
 class ProfileView extends StatefulWidget {
@@ -13,7 +14,7 @@ class ProfileView extends StatefulWidget {
     this.user,
   }) : super(key: key);
 
-  final User? user;
+  final AppUser? user;
 
   @override
   State<ProfileView> createState() => _ProfileViewState();
@@ -21,7 +22,7 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView>
     with TickerProviderStateMixin {
-  void incrementLikes(Post post, User user) {
+  void incrementLikes(Post post, AppUser user) {
     setState(() {
       post.likeCount++;
       post.likedBy.add(user.id);
@@ -38,11 +39,12 @@ class _ProfileViewState extends State<ProfileView>
 
   @override
   Widget build(BuildContext context) {
+    AppAnalytics.setCurrentName('Profile Screen');
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         final bool ownUser = widget.user == null ||
             (widget.user != null && widget.user!.id == userProvider.user!.id);
-        final User user = ownUser ? userProvider.user! : widget.user!;
+        final AppUser user = ownUser ? userProvider.user! : widget.user!;
         List<Post> userPosts = DummyData.posts
             .where(
               (element) => element.userId == user.id,
@@ -115,7 +117,7 @@ class _ProfileViewState extends State<ProfileView>
   }
 
   Widget userDetailsColumnWidget(
-    User user,
+    AppUser user,
     bool ownUser,
   ) {
     return Padding(

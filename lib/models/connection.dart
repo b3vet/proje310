@@ -6,8 +6,8 @@ part 'connection.g.dart';
 @JsonSerializable()
 class Connection {
   String id;
-  User subject;
-  User target;
+  AppUser subject;
+  AppUser target;
   String
       type; //either "connected" or "requested"; this is how we are going to manage the follower requests and following follower relations
 

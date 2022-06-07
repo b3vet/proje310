@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
-import '../models/user.dart';
 import '../utils/dimensions.dart';
 import '../utils/screenSizes.dart';
 import '../utils/styles.dart';
@@ -179,8 +178,6 @@ class _LoginState extends State<Login> {
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      print('pressed button');
-                      //await loginUser(); add this line in the next step
                       Provider.of<UserProvider>(
                         context,
                         listen: false,

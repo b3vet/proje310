@@ -7,13 +7,15 @@ class AppNotification {
   String id;
   String subjectId;
   String postId;
-  String type; //"share" or "like"
+  String type; //"share" or "like" or "comment"
+  String targetId;
 
   AppNotification({
     required this.id,
     required this.subjectId,
     required this.type,
     required this.postId,
+    required this.targetId,
   });
 
   factory AppNotification.fromJson(Map<String, dynamic> json) =>

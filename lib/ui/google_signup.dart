@@ -66,7 +66,7 @@ class GoogleSignup extends StatelessWidget {
     AppAnalytics.setCurrentName('Signup Screen');
     return Scaffold(
       body: SafeArea(
-        child: Container(
+        child: SizedBox(
           width: screenWidth(context),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

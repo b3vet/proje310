@@ -6,7 +6,83 @@ import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../services/analytics.dart';
-import '../utils/dummy_data.dart';
+import '../services/db.dart';
+import '../utils/screenSizes.dart';
+
+class ProfilePictureOverlay extends ModalRoute<void> {
+  final AppUser user;
+
+  ProfilePictureOverlay(this.user);
+  @override
+  Duration get transitionDuration => const Duration(milliseconds: 500);
+
+  @override
+  bool get opaque => false;
+
+  @override
+  bool get barrierDismissible => false;
+
+  @override
+  Color get barrierColor => Colors.black.withOpacity(0.5);
+
+  @override
+  String get barrierLabel => '';
+
+  @override
+  bool get maintainState => true;
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    return Material(
+      type: MaterialType.transparency,
+      child: SafeArea(
+        child: _buildOverlayContent(context),
+      ),
+    );
+  }
+
+  Widget _buildOverlayContent(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.all(20),
+          child: Image(
+            image: NetworkImage(
+              user.profilePictureUrl ?? 'empty',
+            ),
+            height: 500,
+            width: 500,
+            fit: BoxFit.fitHeight,
+          ),
+        ),
+        IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(
+            Icons.cancel,
+            color: Colors.white,
+          ),
+        )
+      ],
+    );
+  }
+
+  @override
+  Widget buildTransitions(BuildContext context, Animation<double> animation,
+      Animation<double> secondaryAnimation, Widget child) {
+    return FadeTransition(
+      opacity: animation,
+      child: ScaleTransition(
+        scale: animation,
+        child: child,
+      ),
+    );
+  }
+}
 
 class ProfileView extends StatefulWidget {
   const ProfileView({
@@ -22,11 +98,21 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView>
     with TickerProviderStateMixin {
-  void incrementLikes(Post post, AppUser user) {
-    setState(() {
-      post.likeCount++;
-      post.likedBy.add(user.id);
-    });
+  Future<void> incrementLikes(Post post, AppUser user) async {
+    final DB db = DB();
+    if (post.likedBy.any((element) => element == user.id)) {
+      db.decrementLike(post, user);
+      setState(() {
+        post.likeCount--;
+        post.likedBy.remove(user.id);
+      });
+    } else {
+      db.incrementLike(post, user);
+      setState(() {
+        post.likeCount++;
+        post.likedBy.add(user.id);
+      });
+    }
   }
 
   late TabController _controller;
@@ -41,78 +127,124 @@ class _ProfileViewState extends State<ProfileView>
   Widget build(BuildContext context) {
     AppAnalytics.setCurrentName('Profile Screen');
     return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
+      builder: (consumerContext, userProvider, child) {
         final bool ownUser = widget.user == null ||
             (widget.user != null && widget.user!.id == userProvider.user!.id);
         final AppUser user = ownUser ? userProvider.user! : widget.user!;
-        List<Post> userPosts = DummyData.posts
-            .where(
-              (element) => element.userId == user.id,
-            )
-            .toList();
-        return SafeArea(
-          child: NestedScrollView(
-            headerSliverBuilder:
-                (BuildContext context, bool innerBoxIsScrolled) {
-              return [
-                SliverAppBar(
-                  pinned: false,
-                  backgroundColor: Colors.white,
-                  flexibleSpace: FlexibleSpaceBar(
-                    collapseMode: CollapseMode.pin,
-                    background: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        userDetailsColumnWidget(user, ownUser),
-                      ],
+        final DB db = DB();
+        Future<dynamic> getUserPosts = db.getUserPosts(user);
+        return FutureBuilder(
+          future: getUserPosts,
+          builder: (BuildContext buildContext, AsyncSnapshot snapshot) {
+            if (snapshot.hasError) {
+              print(snapshot.error);
+              return const Center(
+                child: Text('Unexpected Error'),
+              );
+            } else if (snapshot.connectionState == ConnectionState.waiting) {
+              return SizedBox(
+                height: screenHeight(buildContext),
+                width: screenWidth(buildContext),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: const [
+                    SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: CircularProgressIndicator(),
                     ),
-                  ),
-                  expandedHeight: 310.0,
-                  bottom: TabBar(
-                    controller: _controller,
-                    labelColor: Theme.of(context).primaryColor,
-                    tabs: const [
-                      Tab(
-                        text: 'Posts',
-                      ),
-                      Tab(
-                        text: 'Posts & Replies',
-                      ),
-                      Tab(
-                        text: 'Media',
-                      ),
-                      Tab(
-                        text: 'Likess',
-                      ),
-                    ],
-                  ),
-                )
-              ];
-            },
-            body: TabBarView(
-              controller: _controller,
-              children: [
-                PostsTab(
-                  posts: userPosts,
-                  incrementLikes: incrementLikes,
+                    Text('Loading..'),
+                  ],
                 ),
-                PostsTab(
-                  posts: userPosts,
-                  incrementLikes: incrementLikes,
-                ),
-                PostsTab(
-                  posts: userPosts,
-                  incrementLikes: incrementLikes,
-                ),
-                PostsTab(
-                  posts: userPosts,
-                  incrementLikes: incrementLikes,
-                ),
-              ],
-            ),
-          ),
+              );
+            }
+            List<Post> liked = snapshot.data!['liked'];
+            List<Post> media = snapshot.data!['media'];
+            List<Post> location = snapshot.data!['location'];
+            List<Post> all = snapshot.data!['all'];
+            return _profileView(
+              user,
+              ownUser,
+              all,
+              media,
+              location,
+              liked,
+            );
+          },
         );
       },
+    );
+  }
+
+  SafeArea _profileView(
+    AppUser user,
+    bool ownUser,
+    List<Post> userPosts,
+    List<Post> mediaPosts,
+    List<Post> locationPosts,
+    List<Post> likedPosts,
+  ) {
+    return SafeArea(
+      child: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              pinned: false,
+              backgroundColor: Colors.white,
+              flexibleSpace: FlexibleSpaceBar(
+                collapseMode: CollapseMode.pin,
+                background: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    userDetailsColumnWidget(user, ownUser),
+                  ],
+                ),
+              ),
+              expandedHeight: 310.0,
+              bottom: TabBar(
+                controller: _controller,
+                labelColor: Theme.of(context).primaryColor,
+                tabs: const [
+                  Tab(
+                    text: 'Posts',
+                  ),
+                  Tab(
+                    text: 'Locations',
+                  ),
+                  Tab(
+                    text: 'Media',
+                  ),
+                  Tab(
+                    text: 'Likes',
+                  ),
+                ],
+              ),
+            )
+          ];
+        },
+        body: TabBarView(
+          controller: _controller,
+          children: [
+            PostsTab(
+              posts: userPosts,
+              incrementLikes: incrementLikes,
+            ),
+            PostsTab(
+              posts: locationPosts,
+              incrementLikes: incrementLikes,
+            ),
+            PostsTab(
+              posts: mediaPosts,
+              incrementLikes: incrementLikes,
+            ),
+            PostsTab(
+              posts: likedPosts,
+              incrementLikes: incrementLikes,
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -128,17 +260,20 @@ class _ProfileViewState extends State<ProfileView>
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: CircleAvatar(
-                  backgroundColor: Colors.black,
-                  child: ClipOval(
-                    child: Image.network(
-                      user.profilePictureUrl ?? 'empty',
-                      fit: BoxFit.fitHeight,
-                    ),
+              GestureDetector(
+                onTap: () => Navigator.of(context).push(
+                  ProfilePictureOverlay(
+                    user,
                   ),
-                  radius: 45,
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(
+                      user.profilePictureUrl ?? 'empty',
+                    ),
+                    radius: 45,
+                  ),
                 ),
               ),
               ownUser

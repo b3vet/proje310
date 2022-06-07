@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
 import '../models/user.dart';
 import '../services/analytics.dart';
+import '../services/db.dart';
 import '../utils/screenSizes.dart';
 
 class EditProfile extends StatefulWidget {
@@ -20,6 +22,49 @@ class EditProfile extends StatefulWidget {
 
 class _EditProfileState extends State<EditProfile> {
   final _formKey = GlobalKey<FormState>();
+
+  void showChangePicture(AppUser user, DB db, UserProvider userProvider) {
+    bool loading = false;
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              ListTile(
+                leading: const Icon(Icons.photo),
+                title: const Text('Select new profile picture'),
+                onTap: () async {
+                  ImagePicker picker = ImagePicker();
+                  XFile? image =
+                      await picker.pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    loading = true;
+                    await userProvider.updateUserProfilePicture(image);
+                  }
+                  loading = false;
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.cancel),
+                title: const Text('Remove Profile Picture'),
+                onTap: () async {
+                  await userProvider.removeProfilePicture();
+                  Navigator.pop(context);
+                },
+              ),
+              if (loading)
+                const ListTile(
+                  leading: CircularProgressIndicator(),
+                  title: Text(
+                    'Please while profile picture is updating!',
+                  ),
+                )
+            ],
+          );
+        });
+  }
 
   Future<void> _showDialog(
     String title,
@@ -56,8 +101,10 @@ class _EditProfileState extends State<EditProfile> {
               content: SingleChildScrollView(
                 child: ListBody(
                   children: [
-                    Text(message,
-                        style: Theme.of(context).textTheme.labelMedium),
+                    Text(
+                      message,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
                   ],
                 ),
               ),
@@ -89,6 +136,7 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     AppAnalytics.setCurrentName('Edit Profile Screen');
+    final DB db = DB();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -105,19 +153,19 @@ class _EditProfileState extends State<EditProfile> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                    child: Center(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.black,
-                        child: ClipOval(
-                          child: Image.network(
-                            user.profilePictureUrl ??
-                                'https://image.winudf.com/v2/image1/Y29tLmZpcmV3aGVlbC5ibGFja3NjcmVlbl9zY3JlZW5fMF8xNTgyNjgwMjgzXzA2MQ/screen-0.jpg?fakeurl=1&type=.jpg',
-                            fit: BoxFit.fitHeight,
+                  GestureDetector(
+                    onTap: () {
+                      showChangePicture(user, db, userProvider);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                      child: Center(
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(
+                            user.profilePictureUrl ?? 'empty',
                           ),
+                          radius: 45,
                         ),
-                        radius: 40,
                       ),
                     ),
                   ),

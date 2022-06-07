@@ -3,11 +3,13 @@ import 'dart:convert';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:project310/services/db.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/post.dart';
 import '../models/user.dart';
+import '../services/cloud_storage.dart';
 import '../utils/dummy_data.dart';
 
 class UserProvider extends ChangeNotifier {
@@ -22,6 +24,8 @@ class UserProvider extends ChangeNotifier {
   AppUser? get user => _user;
 
   static DB db = DB();
+
+  static CloudStorage storage = CloudStorage();
 
   Future<UserCredential> signInWithGoogle() async {
     // Trigger the authentication flow
@@ -57,7 +61,6 @@ class UserProvider extends ChangeNotifier {
     if (user == null) {
       return null;
     }
-    DummyData.users.add(user);
     _user = user;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(_user!.toJson()));
@@ -97,7 +100,6 @@ class UserProvider extends ChangeNotifier {
     );
 
     await db.saveUser(user);
-    print('user saved');
     _user = user;
     return 1;
   }
@@ -124,6 +126,19 @@ class UserProvider extends ChangeNotifier {
 
   void updateUser(AppUser user) {
     _user = user;
+    notifyListeners();
+  }
+
+  Future<void> updateUserProfilePicture(XFile file) async {
+    String newUrl = await storage.changeProfilePicture(_user!, file);
+    await db.changeProfilePicture(_user!, newUrl);
+    _user = _user!.copyWith(profilePictureUrl: newUrl);
+    notifyListeners();
+  }
+
+  Future<void> removeProfilePicture() async {
+    await db.removeProfilePicture(_user!);
+    _user = _user!.copyWith(profilePictureUrl: null);
     notifyListeners();
   }
 }

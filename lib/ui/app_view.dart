@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
+import '../models/post.dart';
+import '../models/user.dart';
+import '../services/db.dart';
+import '../utils/screenSizes.dart';
 import 'feed.dart';
 import 'notifications_view.dart';
 import 'profile_view.dart';
@@ -35,8 +39,78 @@ class _AppViewState extends State<AppView> {
     });
   }
 
+  void showAddPost(BuildContext context, AppUser user) {
+    DB db = DB();
+    String postText = '';
+    showModalBottomSheet(
+      context: context,
+      builder: (buildContext) {
+        return SizedBox(
+          height: screenHeight(context),
+          width: screenWidth(context),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton(
+                    child: const Text('cancel'),
+                    onPressed: () {
+                      Navigator.pop(buildContext);
+                    },
+                  ),
+                  TextButton(
+                    child: const Text('post'),
+                    onPressed: () async {
+                      Post toSend = Post(
+                        id: 'dummyid',
+                        text: postText,
+                        likedBy: [],
+                        comments: [],
+                        userId: user.id,
+                        commentCount: 0,
+                        likeCount: 0,
+                        shareCount: 0,
+                      );
+                      await db.addPost(toSend, user);
+                      Navigator.pop(buildContext);
+                    },
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(8),
+                width: screenWidth(context),
+                child: TextFormField(
+                  autofocus: true,
+                  keyboardType: TextInputType.multiline,
+                  maxLines: 5,
+                  maxLength: 255,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    postText = value;
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    AppUser user = Provider.of<UserProvider>(context, listen: false).user!;
     return Scaffold(
       appBar: AppBar(
         title: const Text('SUConnect'),
@@ -53,7 +127,19 @@ class _AppViewState extends State<AppView> {
                   (route) => false,
                 );
               },
-            )
+            ),
+          if (_selectedIndex == 0)
+            TextButton(
+              child: Text(
+                'Add Post',
+                style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                      color: Colors.white,
+                    ),
+              ),
+              onPressed: () {
+                showAddPost(context, user);
+              },
+            ),
         ],
       ),
       body: IndexedStack(

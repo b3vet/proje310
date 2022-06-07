@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,7 +8,7 @@ import '../utils/dummy_data.dart';
 import '../utils/route_args.dart';
 import '../utils/screenSizes.dart';
 
-typedef PostAndUserToVoid = void Function(Post, AppUser);
+typedef PostAndUserToVoid = Future<void> Function(Post, AppUser);
 
 class PostCard extends StatelessWidget {
   final Post post;
@@ -132,7 +131,8 @@ class PostCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     TextButton.icon(
-                      onPressed: () => incrementLike(post, currentUser),
+                      onPressed: () async =>
+                          await incrementLike(post, currentUser),
                       icon: Icon(
                         post.likedBy.contains(currentUser.id)
                             ? Icons.star_rate_rounded

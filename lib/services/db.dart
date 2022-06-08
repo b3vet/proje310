@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/notification.dart';
 import '../models/post.dart';
 import '../models/user.dart';
+import 'cloud_storage.dart';
 
 class DB {
   Future<void> saveUser(AppUser user) async {
@@ -202,6 +203,9 @@ class DB {
         )
         .toList();
     postReturner.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    for (final i in postReturner) {
+      print(i.text);
+    }
     return {
       'users': userReturner,
       'posts': postReturner,
@@ -227,7 +231,33 @@ class DB {
     );
   }
 
-  Future<dynamic> getUserPosts(AppUser user) async {
+  Future<dynamic> getUserPosts(AppUser user, AppUser viewingUser) async {
+    final isPrivateAccount = (await getUser(user.id))!.publicAccount == false;
+    if (isPrivateAccount) {
+      final connectionRef =
+          FirebaseFirestore.instance.collection('connections');
+      final connectionBetween = await connectionRef
+          .where('subject', isEqualTo: viewingUser.id)
+          .where('target', isEqualTo: user.id)
+          .get();
+      if (connectionBetween.docs.isEmpty) {
+        //means that the viewing user is not connnected to the user that is being shown
+        return {
+          'liked': [],
+          'media': [],
+          'location': [],
+          'all': ['uCantCMe'],
+        };
+      } else if (connectionBetween.docs[0].data()['type'] == 'requested') {
+        return {
+          'liked': [],
+          'media': [],
+          'location': [],
+          'all': ['requested'],
+        };
+      }
+    }
+
     final postsRef = FirebaseFirestore.instance.collection('posts');
     QuerySnapshot<Map<String, dynamic>> allPostsSnap =
         await postsRef.where('userId', isEqualTo: user.id).get();
@@ -293,5 +323,112 @@ class DB {
     usersRef.doc(user.id).update({
       'profilePictureUrl': newUrl,
     });
+  }
+
+  Future<void> reactivateUser(AppUser user) async {
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    usersRef.doc(user.id).update({
+      'deactivated': false,
+    });
+  }
+
+  Future<void> deactivateUser(AppUser user) async {
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    usersRef.doc(user.id).update({
+      'deactivated': true,
+    });
+  }
+
+  Future<void> deleteUser(AppUser user) async {
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    final postsRef = FirebaseFirestore.instance.collection('posts');
+    final notifRef = FirebaseFirestore.instance.collection('notifications');
+    final connectRef = FirebaseFirestore.instance.collection('connections');
+    await usersRef.doc(user.id).delete();
+    final batch = FirebaseFirestore.instance.batch();
+    final usersPosts = await postsRef.where('userId', isEqualTo: user.id).get();
+    List<String> postIds = usersPosts.docs
+        .map(
+          (doc) => doc.id,
+        )
+        .toList();
+    List<String> idsOfPostsWithMedia = [];
+    for (final doc in usersPosts.docs) {
+      if (doc.data()['imageUrl'] != null || doc.data()['videoUrl'] != null) {
+        idsOfPostsWithMedia.add(doc.id);
+      }
+    }
+    for (final id in postIds) {
+      batch.delete(postsRef.doc(id));
+    }
+    await batch.commit();
+    CloudStorage store = CloudStorage();
+    for (final id in idsOfPostsWithMedia) {
+      await store.removePostMedia(id);
+    }
+
+    final subjectNotifications =
+        await notifRef.where('subjectId', isEqualTo: user.id).get();
+    List<String> notifIdsToDelete = [];
+    for (final doc in subjectNotifications.docs) {
+      notifIdsToDelete.add(doc.id);
+    }
+    final targetNotifications =
+        await notifRef.where('targetId', isEqualTo: user.id).get();
+    for (final doc in targetNotifications.docs) {
+      notifIdsToDelete.add(doc.id);
+    }
+
+    final batch2 = FirebaseFirestore.instance.batch();
+    for (final id in notifIdsToDelete) {
+      batch2.delete(notifRef.doc(id));
+    }
+    await batch2.commit();
+
+    final subjectConnections =
+        await connectRef.where('subject', isEqualTo: user.id).get();
+    List<String> connectIdsToDelete = [];
+    for (final doc in subjectConnections.docs) {
+      connectIdsToDelete.add(doc.id);
+    }
+    final targetConnections =
+        await connectRef.where('target', isEqualTo: user.id).get();
+    for (final doc in targetConnections.docs) {
+      connectIdsToDelete.add(doc.id);
+    }
+
+    final batch3 = FirebaseFirestore.instance.batch();
+    for (final id in connectIdsToDelete) {
+      batch3.delete(connectRef.doc(id));
+    }
+    await batch3.commit();
+  }
+
+  Future<List<int>> getConnectedCounts(AppUser user) async {
+    final connectRef = FirebaseFirestore.instance.collection('connections');
+    //return list at index 0 number of connected to me at index 1 connected to
+    int connectedTo = (await connectRef
+            .where('subject', isEqualTo: user.id)
+            .where('type', isEqualTo: 'connected')
+            .get())
+        .size;
+    int connectedToMe = (await connectRef
+            .where('target', isEqualTo: user.id)
+            .where('type', isEqualTo: 'connected')
+            .get())
+        .size;
+    return [connectedToMe, connectedTo];
+  }
+
+  Future<List<Post>> getComments(Post post) async {
+    final postsRef = FirebaseFirestore.instance.collection('posts');
+    final dbRes = await postsRef.where('commentToId', isEqualTo: post.id).get();
+    return dbRes.docs
+        .map(
+          (doc) => Post.fromJson(
+            doc.data(),
+          ),
+        )
+        .toList();
   }
 }

@@ -10,12 +10,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../services/cloud_storage.dart';
-import '../utils/dummy_data.dart';
 
 class UserProvider extends ChangeNotifier {
   UserProvider(AppUser? storedUser) {
     if (storedUser != null) {
-      DummyData.users.add(storedUser);
       _user = storedUser;
     }
   }
@@ -61,6 +59,11 @@ class UserProvider extends ChangeNotifier {
     if (user == null) {
       return null;
     }
+
+    if (user.deactivated == true) {
+      await db.reactivateUser(user);
+      user.deactivated = false;
+    }
     _user = user;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user', jsonEncode(_user!.toJson()));
@@ -81,11 +84,11 @@ class UserProvider extends ChangeNotifier {
     }
 
     User firebaseUser = creds.user!;
-
     AppUser? checkuser = await db.getUser(firebaseUser.uid);
 
     if (checkuser != null) {
-      return 'An account with the used email already exists. Please use login!';
+      await GoogleSignIn().disconnect();
+      return 'An account linked with the used google account already exists. Please use login!';
     }
     AppUser user = AppUser(
       deactivated: false,
@@ -104,7 +107,18 @@ class UserProvider extends ChangeNotifier {
     return 1;
   }
 
+  Future<void> deactivate() async {
+    await db.deactivateUser(_user!);
+    await logout();
+  }
+
+  Future<void> deleteAccount() async {
+    await db.deleteUser(_user!);
+    await logout();
+  }
+
   Future<void> logout() async {
+    await GoogleSignIn().disconnect();
     await FirebaseAuth.instance.signOut();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user');
@@ -140,5 +154,10 @@ class UserProvider extends ChangeNotifier {
     await db.removeProfilePicture(_user!);
     _user = _user!.copyWith(profilePictureUrl: null);
     notifyListeners();
+  }
+
+  Future<void> delete() async {
+    await db.deleteUser(_user!);
+    logout();
   }
 }

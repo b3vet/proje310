@@ -31,6 +31,13 @@ class _EditProfileState extends State<EditProfile> {
           return Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
+              if (loading)
+                const ListTile(
+                  leading: CircularProgressIndicator(),
+                  title: Text(
+                    'Please while profile picture is updating!',
+                  ),
+                ),
               ListTile(
                 leading: const Icon(Icons.photo),
                 title: const Text('Select new profile picture'),
@@ -54,13 +61,6 @@ class _EditProfileState extends State<EditProfile> {
                   Navigator.pop(context);
                 },
               ),
-              if (loading)
-                const ListTile(
-                  leading: CircularProgressIndicator(),
-                  title: Text(
-                    'Please while profile picture is updating!',
-                  ),
-                )
             ],
           );
         });
@@ -69,9 +69,19 @@ class _EditProfileState extends State<EditProfile> {
   Future<void> _showDialog(
     String title,
     String message,
-    BuildContext context,
-  ) async {
+    BuildContext context, {
+    bool? deactivate,
+    bool? delete,
+  }) async {
     bool isAndroid = Platform.isAndroid;
+    Future<void> deactivateAccount() async {
+      await Provider.of<UserProvider>(context).deactivate();
+    }
+
+    Future<void> deleteAccount() async {
+      await Provider.of<UserProvider>(context).delete();
+    }
+
     return showDialog(
         context: context,
         barrierDismissible: false,
@@ -89,8 +99,18 @@ class _EditProfileState extends State<EditProfile> {
               actions: [
                 TextButton(
                   child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
+                  onPressed: () async {
+                    if (deactivate != null) {
+                      await deactivateAccount();
+                    } else if (delete != null) {
+                      await deleteAccount();
+                    }
+
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/welcome',
+                      (route) => false,
+                    );
                   },
                 )
               ],
@@ -273,16 +293,47 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                         ),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 0, 24, 0),
                               child: OutlinedButton(
                                 onPressed: () {
                                   _showDialog(
-                                    'Deactivate Account',
-                                    'Are you sure?',
+                                    'Delete Account',
+                                    'All the user related data and everything will be deleted! THIS CANNOT BE UNDONE! Are you sure?',
                                     context,
+                                    delete: true,
+                                  );
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12.0,
+                                  ),
+                                  child: Text(
+                                    'Delete Account',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .scaffoldBackgroundColor,
+                                      fontSize: 12.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 0, 24, 0),
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  _showDialog(
+                                    'Deactivate Account',
+                                    'People will not be able to see any content related to this account when you deactivate. The account will be reactivated next time you log in.',
+                                    context,
+                                    deactivate: true,
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(

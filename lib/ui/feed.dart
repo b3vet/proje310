@@ -75,12 +75,17 @@ class _FeedViewState extends State<FeedView> {
 
         if (snapshot.data == null ||
             (snapshot.data != null && snapshot.data!.isEmpty)) {
-          return const Align(
-            alignment: Alignment.center,
-            child: Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                'No one you follow shared a post before! Follow some accounts to see posts!',
+          return RefreshIndicator(
+            onRefresh: () async {
+              setState(() {});
+            },
+            child: const Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text(
+                  'No one you follow shared a post before! Follow some accounts to see posts!',
+                ),
               ),
             ),
           );

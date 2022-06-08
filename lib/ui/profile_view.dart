@@ -132,7 +132,8 @@ class _ProfileViewState extends State<ProfileView>
             (widget.user != null && widget.user!.id == userProvider.user!.id);
         final AppUser user = ownUser ? userProvider.user! : widget.user!;
         final DB db = DB();
-        Future<dynamic> getUserPosts = db.getUserPosts(user);
+        Future<dynamic> getUserPosts =
+            db.getUserPosts(user, userProvider.user!);
         return FutureBuilder(
           future: getUserPosts,
           builder: (BuildContext buildContext, AsyncSnapshot snapshot) {
@@ -162,7 +163,23 @@ class _ProfileViewState extends State<ProfileView>
             List<Post> liked = snapshot.data!['liked'];
             List<Post> media = snapshot.data!['media'];
             List<Post> location = snapshot.data!['location'];
-            List<Post> all = snapshot.data!['all'];
+            List<dynamic> tempAll = snapshot.data!['all'];
+            List<Post> all = [];
+            bool private = false;
+            bool requested = false;
+            if (tempAll.isNotEmpty &&
+                tempAll[0] is String &&
+                tempAll[0] == 'requested') {
+              //means this is a private account that we cannot see
+              private = true;
+            } else if (tempAll.isNotEmpty &&
+                tempAll[0] is String &&
+                tempAll[0] != 'requested') {
+              private = true;
+              requested = true;
+            } else {
+              all = tempAll as List<Post>;
+            }
             return _profileView(
               user,
               ownUser,
@@ -170,6 +187,8 @@ class _ProfileViewState extends State<ProfileView>
               media,
               location,
               liked,
+              private,
+              requested,
             );
           },
         );
@@ -184,6 +203,8 @@ class _ProfileViewState extends State<ProfileView>
     List<Post> mediaPosts,
     List<Post> locationPosts,
     List<Post> likedPosts,
+    bool private,
+    bool requested,
   ) {
     return SafeArea(
       child: NestedScrollView(
@@ -197,7 +218,7 @@ class _ProfileViewState extends State<ProfileView>
                 background: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    userDetailsColumnWidget(user, ownUser),
+                    userDetailsColumnWidget(user, ownUser, private, requested),
                   ],
                 ),
               ),
@@ -225,24 +246,39 @@ class _ProfileViewState extends State<ProfileView>
         },
         body: TabBarView(
           controller: _controller,
-          children: [
-            PostsTab(
-              posts: userPosts,
-              incrementLikes: incrementLikes,
-            ),
-            PostsTab(
-              posts: locationPosts,
-              incrementLikes: incrementLikes,
-            ),
-            PostsTab(
-              posts: mediaPosts,
-              incrementLikes: incrementLikes,
-            ),
-            PostsTab(
-              posts: likedPosts,
-              incrementLikes: incrementLikes,
-            ),
-          ],
+          children: private
+              ? const [
+                  Center(
+                    child: Text('This user\'s account is private.'),
+                  ),
+                  Center(
+                    child: Text('This user\'s account is private.'),
+                  ),
+                  Center(
+                    child: Text('This user\'s account is private.'),
+                  ),
+                  Center(
+                    child: Text('This user\'s account is private.'),
+                  ),
+                ]
+              : [
+                  PostsTab(
+                    posts: userPosts,
+                    incrementLikes: incrementLikes,
+                  ),
+                  PostsTab(
+                    posts: locationPosts,
+                    incrementLikes: incrementLikes,
+                  ),
+                  PostsTab(
+                    posts: mediaPosts,
+                    incrementLikes: incrementLikes,
+                  ),
+                  PostsTab(
+                    posts: likedPosts,
+                    incrementLikes: incrementLikes,
+                  ),
+                ],
         ),
       ),
     );
@@ -251,100 +287,110 @@ class _ProfileViewState extends State<ProfileView>
   Widget userDetailsColumnWidget(
     AppUser user,
     bool ownUser,
+    bool private,
+    bool requested,
   ) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    DB db = DB();
+    Future<List<int>> connectedCounts = db.getConnectedCounts(user);
+    return FutureBuilder<List<int>>(
+      future: connectedCounts,
+      initialData: const [0, 0],
+      builder: (BuildContext context, AsyncSnapshot<List<int>> snap) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
             children: [
-              GestureDetector(
-                onTap: () => Navigator.of(context).push(
-                  ProfilePictureOverlay(
-                    user,
-                  ),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(
-                      user.profilePictureUrl ?? 'empty',
-                    ),
-                    radius: 45,
-                  ),
-                ),
-              ),
-              ownUser
-                  ? OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/editProfile');
-                      },
-                      child: const Text('Edit Profile'),
-                    )
-                  : const SizedBox.shrink(),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 0, 5),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 20,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.of(context).push(
+                      ProfilePictureOverlay(
+                        user,
                       ),
                     ),
-                    Text('@${user.username}'),
-                    const SizedBox(
-                      height: 5,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(
+                          user.profilePictureUrl ?? 'empty',
+                        ),
+                        radius: 45,
+                      ),
                     ),
-                    Text(user.bio == null ? '' : '${user.bio}\n'),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: const [
+                  ),
+                  ownUser
+                      ? OutlinedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/editProfile');
+                          },
+                          child: const Text('Edit Profile'),
+                        )
+                      : const SizedBox.shrink(),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 10, 0, 5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          '0',
-                          style: TextStyle(
+                          user.name,
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                            fontSize: 20,
                           ),
                         ),
-                        Text(
-                          'Following',
-                          style: TextStyle(
-                            fontSize: 15,
-                          ),
+                        Text('@${user.username}'),
+                        const SizedBox(
+                          height: 5,
                         ),
-                        SizedBox(width: 8),
-                        Text(
-                          '0',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Text(
-                          'Followers',
-                          style: TextStyle(
-                            fontSize: 15,
-                          ),
+                        Text(user.bio == null ? '' : '${user.bio}\n'),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text(
+                              snap.data![1].toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const Text(
+                              'Connected To Me',
+                              style: TextStyle(
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              snap.data![0].toString(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const Text(
+                              'Connected To',
+                              style: TextStyle(
+                                fontSize: 15,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-              )
+                  )
+                ],
+              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

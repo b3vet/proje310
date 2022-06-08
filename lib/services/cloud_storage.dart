@@ -17,4 +17,10 @@ class CloudStorage {
     }
     return profilePicturesRef.getDownloadURL();
   }
+
+  Future<void> removePostMedia(String postId) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final postMediaRef = storageRef.child('postMedia/$postId');
+    postMediaRef.delete();
+  }
 }

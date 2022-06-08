@@ -101,6 +101,43 @@ class _AppViewState extends State<AppView> {
                   },
                 ),
               ),
+              Row(
+                children: [
+                  ClipOval(
+                    child: Material(
+                      color: Theme.of(context).primaryColor, // Button color
+                      child: InkWell(
+                        splashColor: Theme.of(context)
+                            .bottomNavigationBarTheme
+                            .unselectedItemColor, // Splash color
+                        onTap: () {},
+                        child: const SizedBox(
+                          width: 56,
+                          height: 56,
+                          child: Icon(Icons.image),
+                        ),
+                      ),
+                    ),
+                  ),
+                  ClipOval(
+                    child: Material(
+                      color: Theme.of(context).primaryColor, // Button color
+                      child: InkWell(
+                        splashColor: Theme.of(context)
+                            .bottomNavigationBarTheme
+                            .unselectedItemColor, // Splash color
+                        onTap: () {},
+                        child: const SizedBox(
+                          width: 56,
+                          height: 56,
+                          child: Icon(Icons.video_call_outlined),
+                        ),
+                      ),
+                    ),
+                  )
+                ],
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              ),
             ],
           ),
         );

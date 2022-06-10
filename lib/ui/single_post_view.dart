@@ -6,7 +6,6 @@ import '../models/post.dart';
 import '../models/user.dart';
 import '../services/analytics.dart';
 import '../services/db.dart';
-import '../utils/dummy_data.dart';
 import '../utils/route_args.dart';
 import '../utils/screenSizes.dart';
 
@@ -66,7 +65,7 @@ Widget commentCard(BuildContext context, Post comment, Post commentTo) {
             children: [
               Row(
                 children: [
-                  GestureDetector(
+                  InkWell(
                     onTap: () {
                       Navigator.pushNamed(
                         context,
@@ -76,54 +75,63 @@ Widget commentCard(BuildContext context, Post comment, Post commentTo) {
                         ),
                       );
                     },
-                    child: CircleAvatar(
-                      backgroundImage: NetworkImage(
-                        userOfComment.profilePictureUrl ?? 'empty',
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(5, 15, 0, 0),
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(
+                          userOfComment.profilePictureUrl ?? 'empty',
+                        ),
+                        radius: 18,
                       ),
                     ),
                   ),
+                  const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/standaloneProfileView',
-                            arguments: StandaloneProfileViewArguments(
-                              user: userOfComment,
-                            ),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            Text(
+                      Row(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                context,
+                                '/standaloneProfileView',
+                                arguments: StandaloneProfileViewArguments(
+                                  user: userOfComment,
+                                ),
+                              );
+                            },
+                            child: Text(
                               userOfComment.name,
                               style: Theme.of(context).textTheme.bodyText1,
                             ),
-                            const SizedBox(width: 2),
-                            Text(
-                              '@' + userOfComment.username,
-                              style: Theme.of(context).textTheme.bodyText2,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              differenceFromNow.inSeconds > 60
-                                  ? differenceFromNow.inMinutes > 60
-                                      ? differenceFromNow.inHours > 24
-                                          ? '· ${differenceFromNow.inDays} d'
-                                          : '· ${differenceFromNow.inHours} h'
-                                      : '· ${differenceFromNow.inMinutes} m'
-                                  : '· ${differenceFromNow.inSeconds} s',
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '@' + userOfComment.username,
+                            style: Theme.of(context).textTheme.bodyText2,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            differenceFromNow.inSeconds > 60
+                                ? differenceFromNow.inMinutes > 60
+                                    ? differenceFromNow.inHours > 24
+                                        ? '· ${differenceFromNow.inDays} d'
+                                        : '· ${differenceFromNow.inHours} h'
+                                    : '· ${differenceFromNow.inMinutes} m'
+                                : '· ${differenceFromNow.inSeconds} s',
+                          ),
+                        ],
                       ),
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Replying to'),
-                          TextButton(
-                            onPressed: () {
+                          const SizedBox(
+                            width: 4,
+                          ),
+                          GestureDetector(
+                            onTap: () {
                               Navigator.pushNamed(
                                 context,
                                 '/standaloneProfileView',
@@ -146,17 +154,21 @@ Widget commentCard(BuildContext context, Post comment, Post commentTo) {
                 ],
               ),
               const SizedBox(height: 15),
-              Text(
-                comment.text,
-                style: const TextStyle(
-                  fontSize: 20,
+              Container(
+                margin: const EdgeInsets.fromLTRB(15, 0, 0, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      comment.text,
+                      style: Theme.of(context).textTheme.bodyText2,
+                    ),
+                  ],
                 ),
               ),
-              comment.imageUrl != null
-                  ? _postImageView(context, comment)
-                  : const SizedBox.shrink(),
+              if (comment.imageUrl != null) _postImageView(context, comment),
               Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(4.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
@@ -296,7 +308,9 @@ class SinglePostView extends StatelessWidget {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         post.text,
-                        style: Theme.of(context).textTheme.bodyText2,
+                        style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                              fontSize: 20,
+                            ),
                       ),
                     ),
                     post.imageUrl != null

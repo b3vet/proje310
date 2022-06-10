@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/notification.dart';
@@ -119,7 +121,8 @@ class DB {
     return returnList;
   }
 
-  Future<void> addPost(Post post, AppUser user) async {
+  Future<Post> addPost(
+      Post post, AppUser user, File? image, File? video) async {
     final postsRef = FirebaseFirestore.instance.collection('posts');
     final usersRef = FirebaseFirestore.instance.collection('users');
     post.id = postsRef.doc().id;
@@ -127,6 +130,7 @@ class DB {
       'posts': FieldValue.arrayUnion([post.id])
     });
     await postsRef.doc(post.id).set(post.toJson());
+    return post;
   }
 
   Future<void> incrementLike(Post post, AppUser user) async {

@@ -15,50 +15,50 @@ class GoogleSignup extends StatelessWidget {
       String title, String message, BuildContext context) async {
     bool isAndroid = Platform.isAndroid;
     return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          if (isAndroid) {
-            return AlertDialog(
-              title: Text(title),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: [
-                    Text(message),
-                  ],
-                ),
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        if (isAndroid) {
+          return AlertDialog(
+            title: Text(title),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  Text(message),
+                ],
               ),
-              actions: [
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            );
-          } else {
-            return CupertinoAlertDialog(
-              title: Text(title, style: Theme.of(context).textTheme.labelLarge),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: [
-                    Text(message,
-                        style: Theme.of(context).textTheme.labelMedium),
-                  ],
-                ),
+            ),
+            actions: [
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        } else {
+          return CupertinoAlertDialog(
+            title: Text(title, style: Theme.of(context).textTheme.labelLarge),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  Text(message, style: Theme.of(context).textTheme.labelMedium),
+                ],
               ),
-              actions: [
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            );
-          }
-        });
+            ),
+            actions: [
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        }
+      },
+    );
   }
 
   @override
@@ -110,6 +110,22 @@ class GoogleSignup extends StatelessWidget {
                 label: const Text(
                   'Signup with Google',
                 ),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50),
+                ),
+                icon: const Icon(
+                  Icons.email,
+                  size: 24,
+                ),
+                label: const Text('Signup with email and password'),
+                onPressed: () {
+                  Navigator.popAndPushNamed(context, '/signup');
+                },
               ),
               TextButton(
                 onPressed: () {

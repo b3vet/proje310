@@ -107,7 +107,8 @@ Widget commentCard(BuildContext context, Post comment, Post commentTo) {
                       margin: const EdgeInsets.fromLTRB(5, 15, 0, 0),
                       child: CircleAvatar(
                         backgroundImage: NetworkImage(
-                          userOfComment.profilePictureUrl ?? 'empty',
+                          userOfComment.profilePictureUrl ??
+                              'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
                         ),
                         radius: 18,
                       ),
@@ -332,7 +333,8 @@ class _SinglePostViewState extends State<SinglePostView> {
                             padding: const EdgeInsets.all(8.0),
                             child: CircleAvatar(
                               backgroundImage: NetworkImage(
-                                postsUser.profilePictureUrl ?? 'empty',
+                                postsUser.profilePictureUrl ??
+                                    'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
                               ),
                               radius: 25,
                             ),

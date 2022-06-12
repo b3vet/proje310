@@ -249,35 +249,40 @@ class DB {
   Future<dynamic> getUserPosts(AppUser user, AppUser viewingUser) async {
     final isPrivateAccount = (await getUser(user.id))!.publicAccount == false;
     bool following = false;
+    bool isOwnProfile = user.id == viewingUser.id;
 
     final connectionRef = FirebaseFirestore.instance.collection('connections');
     final connectionBetween = await connectionRef
         .where('subject', isEqualTo: viewingUser.id)
         .where('target', isEqualTo: user.id)
         .get();
-    if (connectionBetween.docs.isEmpty) {
-      //means that the viewing user is not connnected to the user that is being shown
-      if (isPrivateAccount) {
-        return {
-          'liked': [],
-          'media': [],
-          'location': [],
-          'all': ['uCantCMe'],
-          'following': false,
-        };
+
+    if (!isOwnProfile) {
+      if (connectionBetween.docs.isEmpty) {
+        //means that the viewing user is not connnected to the user that is being shown
+
+        if (isPrivateAccount) {
+          return {
+            'liked': [],
+            'media': [],
+            'location': [],
+            'all': ['uCantCMe'],
+            'following': false,
+          };
+        }
+      } else if (connectionBetween.docs[0].data()['type'] == 'requested') {
+        if (isPrivateAccount) {
+          return {
+            'liked': [],
+            'media': [],
+            'location': [],
+            'all': ['requested'],
+            'following': false,
+          };
+        }
+      } else {
+        following = true;
       }
-    } else if (connectionBetween.docs[0].data()['type'] == 'requested') {
-      if (isPrivateAccount) {
-        return {
-          'liked': [],
-          'media': [],
-          'location': [],
-          'all': ['requested'],
-          'following': false,
-        };
-      }
-    } else {
-      following = true;
     }
 
     final postsRef = FirebaseFirestore.instance.collection('posts');
@@ -288,7 +293,6 @@ class DB {
           (e) => Post.fromJson(e.data()),
         )
         .toList();
-
     late QuerySnapshot<Map<String, dynamic>> sharedPostsResult;
     final listOfSharedPostsByUser = user.sharedPosts;
     List<List<String>?> arrayChunks = [];
@@ -303,7 +307,6 @@ class DB {
       );
     }
     List<Post> sharedPosts = [];
-
     for (var i = 0; i < arrayChunks.length; i++) {
       sharedPostsResult =
           await postsRef.where('id', whereIn: arrayChunks[i]).get();
@@ -356,7 +359,6 @@ class DB {
           .toList()
     ];
     mediaPosts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
     QuerySnapshot<Map<String, dynamic>> likesResult =
         await postsRef.where('likedBy', arrayContains: user.id).get();
     List<Post> likedPosts = likesResult.docs
@@ -542,12 +544,15 @@ class DB {
   }
 
   Future<void> addConnectionOfTo(AppUser of, AppUser to) async {
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    bool isPrivate =
+        (await usersRef.doc(of.id).get()).data()!['publicAccount'] == false;
     final connectRef = FirebaseFirestore.instance.collection('connections');
     Connection connectionToSend = Connection(
       id: 'dummyId',
       subject: to.id,
       target: of.id,
-      type: 'connected',
+      type: isPrivate ? 'requested' : 'connected',
     );
     connectionToSend.id = connectRef.doc().id;
     await connectRef.doc(connectionToSend.id).set(connectionToSend.toJson());
@@ -601,6 +606,17 @@ class DB {
     postsRef.doc(post.id).update(
       {'shareCount': FieldValue.increment(1)},
     );
+    final notificationsRef =
+        FirebaseFirestore.instance.collection('notifications');
+    DocumentReference<Map<String, dynamic>> tempDoc = notificationsRef.doc();
+    AppNotification temp = AppNotification(
+      id: tempDoc.id,
+      subjectId: user.id,
+      targetId: post.userId,
+      postId: post.id,
+      type: 'reshare',
+    );
+    await notificationsRef.doc(temp.id).set(temp.toJson());
   }
 
   Future<void> removeShare(Post post, AppUser user) async {
@@ -614,12 +630,37 @@ class DB {
     postsRef.doc(post.id).update(
       {'shareCount': FieldValue.increment(-1)},
     );
+    final notificationsRef =
+        FirebaseFirestore.instance.collection('notifications');
+    String docIdToRemove = (await notificationsRef
+            .where('subjectId', isEqualTo: user.id)
+            .where(
+              'postId',
+              isEqualTo: post.id,
+            )
+            .where(
+              'type',
+              isEqualTo: 'reshare',
+            )
+            .get())
+        .docs[0]
+        .data()['id'];
+    await notificationsRef.doc(docIdToRemove).delete();
   }
 
   Future<void> increaseCommentCount(Post post) async {
     final postsRef = FirebaseFirestore.instance.collection('posts');
     await postsRef.doc(post.id).update({
       'commentCount': FieldValue.increment(1),
+    });
+  }
+
+  Future<void> updateNameBioEmailPublicAccount(AppUser user) async {
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    await usersRef.doc(user.id).update({
+      'name': user.name,
+      'bio': user.bio,
+      'publicAccount': user.publicAccount,
     });
   }
 }

@@ -67,7 +67,8 @@ class NotificationCard extends StatelessWidget {
                         children: [
                           CircleAvatar(
                             backgroundImage: NetworkImage(
-                              subjectUser.profilePictureUrl ?? 'empty',
+                              subjectUser.profilePictureUrl ??
+                                  'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
                             ),
                           ),
                           const SizedBox(width: 4),
@@ -79,8 +80,8 @@ class NotificationCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      notification.type == 'share'
-                          ? 'shared your tweet: '
+                      notification.type == 'reshare'
+                          ? 'reshared your tweet: '
                           : 'liked your tweet: ',
                       style: const TextStyle(
                         fontSize: 20,

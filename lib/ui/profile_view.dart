@@ -88,27 +88,30 @@ class _ProfileViewState extends State<ProfileView>
                 ),
               );
             }
-            List<Post> liked = snapshot.data!['liked'];
-            List<Post> media = snapshot.data!['media'];
-            List<Post> location = snapshot.data!['location'];
+
             List<dynamic> tempAll = snapshot.data!['all'];
             bool isFollowing = snapshot.data!['following'];
-            List<Post> all = [];
+
             bool private = false;
             bool requested = false;
+            List<Post> all = [];
             if (tempAll.isNotEmpty &&
                 tempAll[0] is String &&
                 tempAll[0] == 'requested') {
               //means this is a private account that we cannot see
+              requested = true;
               private = true;
             } else if (tempAll.isNotEmpty &&
                 tempAll[0] is String &&
-                tempAll[0] != 'requested') {
+                tempAll[0] == 'uCantCMe') {
               private = true;
-              requested = true;
             } else {
               all = tempAll as List<Post>;
             }
+
+            List<Post> liked = private ? [] : snapshot.data!['liked'];
+            List<Post> media = private ? [] : snapshot.data!['media'];
+            List<Post> location = private ? [] : snapshot.data!['location'];
             return _profileView(
               user,
               ownUser,
@@ -139,6 +142,7 @@ class _ProfileViewState extends State<ProfileView>
     bool isFollowing,
     void Function(void Function() fn) stateSetter,
   ) {
+    print('private ' + private.toString());
     return SafeArea(
       child: NestedScrollView(
         headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
@@ -285,7 +289,8 @@ class _ProfileViewState extends State<ProfileView>
                       padding: const EdgeInsets.all(20),
                       child: CircleAvatar(
                         backgroundImage: NetworkImage(
-                          user.profilePictureUrl ?? 'empty',
+                          user.profilePictureUrl ??
+                              'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
                         ),
                         radius: 45,
                       ),
@@ -300,7 +305,6 @@ class _ProfileViewState extends State<ProfileView>
                         )
                       : ElevatedButton(
                           onPressed: () async {
-                            print(isFollowing);
                             AppUser viewingUser = Provider.of<UserProvider>(
                               context,
                               listen: false,
@@ -320,7 +324,11 @@ class _ProfileViewState extends State<ProfileView>
                             stateSetter(() {});
                           },
                           child: Text(
-                            isFollowing ? 'Unconnect' : 'Connect',
+                            isFollowing
+                                ? 'Unconnect'
+                                : requested
+                                    ? 'requested'
+                                    : 'Connect',
                           ),
                         ),
                 ],

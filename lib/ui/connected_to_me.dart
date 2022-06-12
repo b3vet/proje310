@@ -114,7 +114,8 @@ class _ConnectedToMePageState extends State<ConnectedToMePage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(50),
                     child: Image.network(
-                      user.profilePictureUrl ?? 'empty',
+                      user.profilePictureUrl ??
+                          'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
                     ),
                   ),
                 ),

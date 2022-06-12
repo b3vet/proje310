@@ -22,57 +22,56 @@ class _SignUpState extends State<SignUp> {
   final _formKey = GlobalKey<FormState>();
   String email = '';
   String pass = '';
-  String username = '';
   String fullname = '';
 
   Future<void> _showDialog(
       String title, String message, BuildContext context) async {
     bool isAndroid = Platform.isAndroid;
     return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          if (isAndroid) {
-            return AlertDialog(
-              title: Text(title),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: [
-                    Text(message),
-                  ],
-                ),
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        if (isAndroid) {
+          return AlertDialog(
+            title: Text(title),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  Text(message),
+                ],
               ),
-              actions: [
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            );
-          } else {
-            return CupertinoAlertDialog(
-              title: Text(title, style: Theme.of(context).textTheme.labelLarge),
-              content: SingleChildScrollView(
-                child: ListBody(
-                  children: [
-                    Text(message,
-                        style: Theme.of(context).textTheme.labelMedium),
-                  ],
-                ),
+            ),
+            actions: [
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        } else {
+          return CupertinoAlertDialog(
+            title: Text(title, style: Theme.of(context).textTheme.labelLarge),
+            content: SingleChildScrollView(
+              child: ListBody(
+                children: [
+                  Text(message, style: Theme.of(context).textTheme.labelMedium),
+                ],
               ),
-              actions: [
-                TextButton(
-                  child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                )
-              ],
-            );
-          }
-        });
+            ),
+            actions: [
+              TextButton(
+                child: const Text('OK'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              )
+            ],
+          );
+        }
+      },
+    );
   }
 
   @override
@@ -217,66 +216,35 @@ class _SignUpState extends State<SignUp> {
                   },
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                width: screenWidth(context, dividedBy: 1.1),
-                child: TextFormField(
-                  keyboardType: TextInputType.text,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    label: SizedBox(
-                      width: 150,
-                      child: Row(
-                        children: const [
-                          Icon(Icons.alternate_email),
-                          SizedBox(width: 4),
-                          Text('username'),
-                        ],
-                      ),
-                    ),
-                    fillColor:
-                        Theme.of(context).textSelectionTheme.selectionColor,
-                    filled: true,
-                    labelStyle: kBoldLabelStyle,
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value != null) {
-                      if (value.isEmpty) {
-                        return 'Cannot leave username empty';
-                      }
-                    }
-                    return null;
-                  },
-                  onSaved: (value) {
-                    username = value ?? '';
-                  },
-                ),
-              ),
               OutlinedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-
-                    //username de kaydetmen lazım
-                    //add username control here
-                    //await loginUser(); add this line in the next step
-                    Provider.of<UserProvider>(
+                    final signUpResut = await Provider.of<UserProvider>(
                       context,
                       listen: false,
-                    ).login();
-                    Navigator.pushNamedAndRemoveUntil(
-                      context,
-                      '/appView',
-                      (route) => false,
-                    ); //remove this line in the next step
-
+                    ).signUpWithoutGoogle(email, pass, fullname);
+                    if (signUpResut != 1) {
+                      if (signUpResut is String) {
+                        _showDialog(
+                          'Account already exists!',
+                          signUpResut,
+                          context,
+                        );
+                      } else {
+                        _showDialog(
+                          'Signup Error',
+                          'Could not signup!',
+                          context,
+                        );
+                      }
+                    } else {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/addDetailsAfterSignup',
+                        (route) => false,
+                      );
+                    }
                   } else {
                     _showDialog('Form Error', 'Your form is invalid', context);
                   }

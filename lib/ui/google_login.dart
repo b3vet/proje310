@@ -120,6 +120,21 @@ class GoogleLogin extends StatelessWidget {
                   'Login with Google',
                 ),
               ),
+              const SizedBox(
+                height: 16,
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50),
+                ),
+                icon: const Icon(
+                  Icons.email,
+                ),
+                label: const Text('Login with email and password'),
+                onPressed: () {
+                  Navigator.popAndPushNamed(context, '/login');
+                },
+              ),
               TextButton(
                 onPressed: () {
                   Navigator.popAndPushNamed(context, '/googleSignup');

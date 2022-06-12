@@ -182,7 +182,8 @@ class _EditProfileState extends State<EditProfile> {
                       child: Center(
                         child: CircleAvatar(
                           backgroundImage: NetworkImage(
-                            user.profilePictureUrl ?? 'empty',
+                            user.profilePictureUrl ??
+                                'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
                           ),
                           radius: 45,
                         ),
@@ -375,9 +376,9 @@ class _EditProfileState extends State<EditProfile> {
                                 )),
                             const SizedBox(width: 8),
                             OutlinedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 _formKey.currentState!.save();
-                                userProvider.updateUser(
+                                await userProvider.updateUser(
                                   user.copyWith(
                                     name: name,
                                     bio: bio,

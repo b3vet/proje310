@@ -43,6 +43,71 @@ class UserProvider extends ChangeNotifier {
     return await FirebaseAuth.instance.signInWithCredential(credential);
   }
 
+  Future<dynamic> signUpWithoutGoogle(
+    String email,
+    String password,
+    String fullname,
+  ) async {
+    UserCredential creds =
+        await FirebaseAuth.instance.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    print(creds.user!.uid);
+    final emailPasswordUser = creds.user!;
+    AppUser? checkuser = await db.getUser(creds.user!.uid);
+
+    if (checkuser != null) {
+      return 'An account linked to this email already exists. Please use login!';
+    }
+    AppUser user = AppUser(
+      deactivated: false,
+      email: emailPasswordUser.email!,
+      id: emailPasswordUser.uid,
+      name: fullname,
+      publicAccount: true,
+      subscribedLocations: [],
+      subscribedTopics: [],
+      username: 'not-set-yet',
+    );
+
+    await db.saveUser(user);
+    _user = user;
+    return 1;
+  }
+
+  Future<dynamic> loginWithoutGoogle(
+    String email,
+    String password,
+  ) async {
+    late UserCredential creds;
+    try {
+      creds = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+    } catch (e) {
+      return e;
+    }
+
+    if (creds.user == null) {
+      return null;
+    }
+    AppUser? user = await db.getUser(creds.user!.uid);
+
+    if (user == null) {
+      return null;
+    }
+
+    if (user.deactivated == true) {
+      await db.reactivateUser(user);
+      user.deactivated = false;
+    }
+    _user = user;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user', jsonEncode(_user!.toJson()));
+    notifyListeners();
+    return 1;
+  }
+
   Future<dynamic> login() async {
     late UserCredential creds;
     try {
@@ -138,8 +203,9 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateUser(AppUser user) {
+  Future<void> updateUser(AppUser user) async {
     _user = user;
+    await db.updateNameBioEmailPublicAccount(user);
     notifyListeners();
   }
 

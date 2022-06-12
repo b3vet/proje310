@@ -218,7 +218,9 @@ class _AddPostModalSheetViewState extends State<AddPostModalSheetView> {
             widget.commentToPost!.commentCount++;
           }
           Post sentPost = await db.addPost(toSend, widget.user, image, video);
-          await db.increaseCommentCount(widget.commentToPost!);
+          if (widget.commentToPost != null) {
+            await db.increaseCommentCount(widget.commentToPost!);
+          }
           Provider.of<UserProvider>(context, listen: false).addPost(sentPost);
           Navigator.pop(context);
         },

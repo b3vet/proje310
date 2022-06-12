@@ -208,6 +208,13 @@ class DB {
         (e) => AppUser.fromJson(e.data()),
       ),
     );
+    List<AppUser> userReturnerWithoutDuplicate = [];
+    for (final user in userReturner) {
+      if (!userReturnerWithoutDuplicate
+          .any((element) => element.id == user.id)) {
+        userReturnerWithoutDuplicate.add(user);
+      }
+    }
     List<Post> postReturner = [];
     QuerySnapshot<Map<String, dynamic>> postresults = await postsRef.get();
     postReturner.addAll(
@@ -222,7 +229,7 @@ class DB {
         .toList();
     postReturner.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return {
-      'users': userReturner,
+      'users': userReturnerWithoutDuplicate,
       'posts': postReturner,
     };
   }

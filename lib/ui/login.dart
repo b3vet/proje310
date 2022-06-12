@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
-import '../models/user.dart';
 import '../utils/dimensions.dart';
 import '../utils/screenSizes.dart';
 import '../utils/styles.dart';
@@ -176,20 +175,42 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 OutlinedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
                       _formKey.currentState!.save();
-                      print('pressed button');
-                      //await loginUser(); add this line in the next step
-                      Provider.of<UserProvider>(
-                        context,
-                        listen: false,
-                      ).login();
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/appView',
-                        (route) => false,
-                      ); //remove this line in next step
+                      dynamic loginResult;
+                      try {
+                        loginResult = await Provider.of<UserProvider>(context,
+                                listen: false)
+                            .loginWithoutGoogle(email, pass);
+                      } catch (e) {
+                        _showDialog(
+                          'Login Error',
+                          'Could not login!',
+                          context,
+                        );
+                        return;
+                      }
+
+                      if (loginResult == null) {
+                        _showDialog(
+                          'User not found!',
+                          'Please sign-up first!',
+                          context,
+                        );
+                      } else if (loginResult != 1) {
+                        _showDialog(
+                          'Login Error',
+                          'Could not login!',
+                          context,
+                        );
+                      } else {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/appView',
+                          (route) => false,
+                        );
+                      }
                     } else {
                       _showDialog(
                         'Form Error',

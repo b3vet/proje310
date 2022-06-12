@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import './utils/colors.dart';
 import 'logic/user_provider.dart';
 import 'models/user.dart';
+import 'services/db.dart';
 import 'ui/add_details_after_signup.dart';
 import 'ui/app_view.dart';
 import 'ui/edit_profile.dart';
@@ -32,10 +32,18 @@ void main() async {
       ? AppUser.fromJson(jsonDecode(storedUserStr))
       : null;
   await Firebase.initializeApp();
+  AppUser? updatedStoredUser;
+  if (storedUser != null) {
+    //if there is a stored user get the latest data of the user
+    DB db = DB();
+    updatedStoredUser = await db.getUser(storedUser.id);
+    await prefs.setString('user', jsonEncode(updatedStoredUser!.toJson()));
+  }
+
   runApp(
     MyApp(
       welcomeShownBefore: welcomeShownBefore,
-      storedUser: storedUser,
+      storedUser: updatedStoredUser,
     ),
   );
 }

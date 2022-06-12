@@ -1,7 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
 
-import 'post.dart';
-
 part 'user.g.dart';
 
 @JsonSerializable()
@@ -69,7 +67,7 @@ class AppUser {
 
   List<Topic> subscribedTopics = [];
 
-  List<Post> posts =
+  List<String> posts =
       []; //this will be existing in data motel but not in database and will be populated when needed
 
   List<String> sharedPosts = []; //ids of shared posts
@@ -101,7 +99,7 @@ class AppUser {
     bool? publicAccount,
     List<Address>? subscribedLocations,
     List<Topic>? subscribedTopics,
-    List<Post>? posts,
+    List<String>? posts,
     List<String>? sharedPosts,
     List<String>? bookmarkedPosts,
   }) {

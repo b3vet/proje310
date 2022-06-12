@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:project310/ui/posts_tab.dart';
 import 'package:provider/provider.dart';
 
@@ -6,7 +7,10 @@ import '../logic/user_provider.dart';
 import '../models/post.dart';
 import '../models/user.dart';
 import '../services/analytics.dart';
-import '../utils/dummy_data.dart';
+import '../services/db.dart';
+import '../utils/screenSizes.dart';
+import 'connected_to.dart';
+import 'connected_to_me.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({
@@ -22,11 +26,21 @@ class ProfileView extends StatefulWidget {
 
 class _ProfileViewState extends State<ProfileView>
     with TickerProviderStateMixin {
-  void incrementLikes(Post post, AppUser user) {
-    setState(() {
-      post.likeCount++;
-      post.likedBy.add(user.id);
-    });
+  Future<void> incrementLikes(Post post, AppUser user) async {
+    final DB db = DB();
+    if (post.likedBy.any((element) => element == user.id)) {
+      db.decrementLike(post, user);
+      setState(() {
+        post.likeCount--;
+        post.likedBy.remove(user.id);
+      });
+    } else {
+      db.incrementLike(post, user);
+      setState(() {
+        post.likeCount++;
+        post.likedBy.add(user.id);
+      });
+    }
   }
 
   late TabController _controller;
@@ -41,121 +55,286 @@ class _ProfileViewState extends State<ProfileView>
   Widget build(BuildContext context) {
     AppAnalytics.setCurrentName('Profile Screen');
     return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
+      builder: (consumerContext, userProvider, child) {
         final bool ownUser = widget.user == null ||
             (widget.user != null && widget.user!.id == userProvider.user!.id);
         final AppUser user = ownUser ? userProvider.user! : widget.user!;
-        List<Post> userPosts = DummyData.posts
-            .where(
-              (element) => element.userId == user.id,
-            )
-            .toList();
-        return SafeArea(
-          child: NestedScrollView(
-            headerSliverBuilder:
-                (BuildContext context, bool innerBoxIsScrolled) {
-              return [
-                SliverAppBar(
-                  pinned: false,
-                  backgroundColor: Colors.white,
-                  flexibleSpace: FlexibleSpaceBar(
-                    collapseMode: CollapseMode.pin,
-                    background: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        userDetailsColumnWidget(user, ownUser),
-                      ],
+        final DB db = DB();
+        Future<dynamic> getUserPosts =
+            db.getUserPosts(user, userProvider.user!);
+        return FutureBuilder(
+          future: getUserPosts,
+          builder: (BuildContext buildContext, AsyncSnapshot snapshot) {
+            if (snapshot.hasError) {
+              print(snapshot.error);
+              return const Center(
+                child: Text('Unexpected Error'),
+              );
+            } else if (snapshot.connectionState == ConnectionState.waiting) {
+              return SizedBox(
+                height: screenHeight(buildContext),
+                width: screenWidth(buildContext),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: const [
+                    SizedBox(
+                      width: 60,
+                      height: 60,
+                      child: CircularProgressIndicator(),
                     ),
-                  ),
-                  expandedHeight: 310.0,
-                  bottom: TabBar(
-                    controller: _controller,
-                    labelColor: Theme.of(context).primaryColor,
-                    tabs: const [
-                      Tab(
-                        text: 'Posts',
-                      ),
-                      Tab(
-                        text: 'Posts & Replies',
-                      ),
-                      Tab(
-                        text: 'Media',
-                      ),
-                      Tab(
-                        text: 'Likess',
-                      ),
-                    ],
-                  ),
-                )
-              ];
-            },
-            body: TabBarView(
-              controller: _controller,
-              children: [
-                PostsTab(
-                  posts: userPosts,
-                  incrementLikes: incrementLikes,
+                    Text('Loading..'),
+                  ],
                 ),
-                PostsTab(
-                  posts: userPosts,
-                  incrementLikes: incrementLikes,
-                ),
-                PostsTab(
-                  posts: userPosts,
-                  incrementLikes: incrementLikes,
-                ),
-                PostsTab(
-                  posts: userPosts,
-                  incrementLikes: incrementLikes,
-                ),
-              ],
-            ),
-          ),
+              );
+            }
+
+            List<dynamic> tempAll = snapshot.data!['all'];
+            bool isFollowing = snapshot.data!['following'];
+
+            bool private = false;
+            bool requested = false;
+            List<Post> all = [];
+            if (tempAll.isNotEmpty &&
+                tempAll[0] is String &&
+                tempAll[0] == 'requested') {
+              //means this is a private account that we cannot see
+              requested = true;
+              private = true;
+            } else if (tempAll.isNotEmpty &&
+                tempAll[0] is String &&
+                tempAll[0] == 'uCantCMe') {
+              private = true;
+            } else {
+              all = tempAll as List<Post>;
+            }
+
+            List<Post> liked = private ? [] : snapshot.data!['liked'];
+            List<Post> media = private ? [] : snapshot.data!['media'];
+            List<Post> location = private ? [] : snapshot.data!['location'];
+            return _profileView(
+              user,
+              ownUser,
+              all,
+              media,
+              location,
+              liked,
+              private,
+              requested,
+              isFollowing,
+              setState,
+            );
+          },
         );
       },
+    );
+  }
+
+  SafeArea _profileView(
+    AppUser user,
+    bool ownUser,
+    List<Post> userPosts,
+    List<Post> mediaPosts,
+    List<Post> locationPosts,
+    List<Post> likedPosts,
+    bool private,
+    bool requested,
+    bool isFollowing,
+    void Function(void Function() fn) stateSetter,
+  ) {
+    print('private ' + private.toString());
+    return SafeArea(
+      child: NestedScrollView(
+        headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              pinned: false,
+              backgroundColor: Colors.white,
+              flexibleSpace: FlexibleSpaceBar(
+                collapseMode: CollapseMode.pin,
+                background: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    userDetailsColumnWidget(
+                      user,
+                      ownUser,
+                      private,
+                      requested,
+                      isFollowing,
+                      stateSetter,
+                    ),
+                  ],
+                ),
+              ),
+              expandedHeight: 310.0,
+              bottom: TabBar(
+                controller: _controller,
+                labelColor: Theme.of(context).primaryColor,
+                tabs: const [
+                  Tab(
+                    text: 'Posts',
+                  ),
+                  Tab(
+                    text: 'Locations',
+                  ),
+                  Tab(
+                    text: 'Media',
+                  ),
+                  Tab(
+                    text: 'Likes',
+                  ),
+                ],
+              ),
+            )
+          ];
+        },
+        body: TabBarView(
+          controller: _controller,
+          children: private
+              ? const [
+                  Center(
+                    child: Text('This user\'s account is private.'),
+                  ),
+                  Center(
+                    child: Text('This user\'s account is private.'),
+                  ),
+                  Center(
+                    child: Text('This user\'s account is private.'),
+                  ),
+                  Center(
+                    child: Text('This user\'s account is private.'),
+                  ),
+                ]
+              : [
+                  PostsTab(
+                    posts: userPosts,
+                    incrementLikes: incrementLikes,
+                    stateSetter: setState,
+                  ),
+                  PostsTab(
+                    posts: locationPosts,
+                    incrementLikes: incrementLikes,
+                    stateSetter: setState,
+                  ),
+                  PostsTab(
+                    posts: mediaPosts,
+                    incrementLikes: incrementLikes,
+                    stateSetter: setState,
+                  ),
+                  PostsTab(
+                    posts: likedPosts,
+                    incrementLikes: incrementLikes,
+                    stateSetter: setState,
+                  ),
+                ],
+        ),
+      ),
     );
   }
 
   Widget userDetailsColumnWidget(
     AppUser user,
     bool ownUser,
+    bool private,
+    bool requested,
+    bool isFollowing,
+    void Function(void Function() fn) stateSetter,
   ) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    DB db = DB();
+    Future<List<int>> connectedCounts = db.getConnectedCounts(user);
+    return FutureBuilder<List<int>>(
+      future: connectedCounts,
+      initialData: const [0, 0],
+      builder: (BuildContext context, AsyncSnapshot<List<int>> snap) {
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: CircleAvatar(
-                  backgroundColor: Colors.black,
-                  child: ClipOval(
-                    child: Image.network(
-                      user.profilePictureUrl ?? 'empty',
-                      fit: BoxFit.fitHeight,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () async {
+                      if (user.profilePictureUrl != null) {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionsBuilder: (_, anim, __, child) =>
+                                FadeTransition(opacity: anim, child: child),
+                            transitionDuration:
+                                const Duration(milliseconds: 250),
+                            pageBuilder: (context, _, __) => Scaffold(
+                              extendBodyBehindAppBar: true,
+                              appBar: AppBar(
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                              ),
+                              body: Center(
+                                child: PhotoView(
+                                  imageProvider:
+                                      NetworkImage(user.profilePictureUrl!),
+                                  minScale: PhotoViewComputedScale.contained,
+                                  maxScale:
+                                      PhotoViewComputedScale.covered * 1.1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(
+                          user.profilePictureUrl ??
+                              'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
+                        ),
+                        radius: 45,
+                      ),
                     ),
                   ),
-                  radius: 45,
-                ),
+                  ownUser
+                      ? OutlinedButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/editProfile');
+                          },
+                          child: const Text('Edit Profile'),
+                        )
+                      : ElevatedButton(
+                          onPressed: () async {
+                            AppUser viewingUser = Provider.of<UserProvider>(
+                              context,
+                              listen: false,
+                            ).user!;
+                            if (isFollowing) {
+                              await db.removeConnectionOfFrom(
+                                user,
+                                viewingUser,
+                              );
+                            } else {
+                              await db.addConnectionOfTo(
+                                user,
+                                viewingUser,
+                              );
+                            }
+
+                            stateSetter(() {});
+                          },
+                          child: Text(
+                            isFollowing
+                                ? 'Unconnect'
+                                : requested
+                                    ? 'requested'
+                                    : 'Connect',
+                          ),
+                        ),
+                ],
               ),
-              ownUser
-                  ? OutlinedButton(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/editProfile');
-                      },
-                      child: const Text('Edit Profile'),
-                    )
-                  : const SizedBox.shrink(),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(10, 10, 0, 5),
+                padding: const EdgeInsets.all(8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -170,46 +349,74 @@ class _ProfileViewState extends State<ProfileView>
                     const SizedBox(
                       height: 5,
                     ),
-                    Text(user.bio == null ? '' : '${user.bio}\n'),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: const [
-                        Text(
-                          '0',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
+                    Text(user.bio == null ? '' : '${user.bio}'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      snap.data![0].toString(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ConnectedToMePage(
+                              user: user,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Following',
-                          style: TextStyle(
-                            fontSize: 15,
+                        );
+                      },
+                      child: Text(
+                        'Connected To Me',
+                        style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                              fontSize: 15,
+                            ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      snap.data![1].toString(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ConnectedToPage(
+                              user: user,
+                            ),
                           ),
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          '0',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Text(
-                          'Followers',
-                          style: TextStyle(
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
+                        );
+                      },
+                      child: Text(
+                        'Connected To',
+                        style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                              fontSize: 15,
+                            ),
+                      ),
                     ),
                   ],
                 ),
-              )
+              ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

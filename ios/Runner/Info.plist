@@ -56,5 +56,16 @@
 		</dict>
 	</array>
 	<!-- End of the Google Sign-In section -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Share images or change profile pictre</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Share images or change profile pictre</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Record videos with sound</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
 </dict>
 </plist>

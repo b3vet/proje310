@@ -27,6 +27,7 @@ class Post {
       commentToId; //if this post is a comment to another post, this id will be the id of the post that is commented with this post.
 
   DateTime createdAt = DateTime.now();
+  AppUser? sharedBy;
   Post({
     required this.id,
     required this.text,

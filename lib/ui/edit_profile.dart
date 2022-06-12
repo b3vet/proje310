@@ -2,11 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
 import '../models/user.dart';
 import '../services/analytics.dart';
+import '../services/db.dart';
 import '../utils/screenSizes.dart';
 
 class EditProfile extends StatefulWidget {
@@ -21,12 +23,65 @@ class EditProfile extends StatefulWidget {
 class _EditProfileState extends State<EditProfile> {
   final _formKey = GlobalKey<FormState>();
 
+  void showChangePicture(AppUser user, DB db, UserProvider userProvider) {
+    bool loading = false;
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              if (loading)
+                const ListTile(
+                  leading: CircularProgressIndicator(),
+                  title: Text(
+                    'Please while profile picture is updating!',
+                  ),
+                ),
+              ListTile(
+                leading: const Icon(Icons.photo),
+                title: const Text('Select new profile picture'),
+                onTap: () async {
+                  ImagePicker picker = ImagePicker();
+                  XFile? image =
+                      await picker.pickImage(source: ImageSource.gallery);
+                  if (image != null) {
+                    loading = true;
+                    await userProvider.updateUserProfilePicture(image);
+                  }
+                  loading = false;
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.cancel),
+                title: const Text('Remove Profile Picture'),
+                onTap: () async {
+                  await userProvider.removeProfilePicture();
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          );
+        });
+  }
+
   Future<void> _showDialog(
     String title,
     String message,
-    BuildContext context,
-  ) async {
+    BuildContext context, {
+    bool? deactivate,
+    bool? delete,
+  }) async {
     bool isAndroid = Platform.isAndroid;
+    Future<void> deactivateAccount() async {
+      await Provider.of<UserProvider>(context).deactivate();
+    }
+
+    Future<void> deleteAccount() async {
+      await Provider.of<UserProvider>(context).delete();
+    }
+
     return showDialog(
         context: context,
         barrierDismissible: false,
@@ -44,8 +99,18 @@ class _EditProfileState extends State<EditProfile> {
               actions: [
                 TextButton(
                   child: const Text('OK'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
+                  onPressed: () async {
+                    if (deactivate != null) {
+                      await deactivateAccount();
+                    } else if (delete != null) {
+                      await deleteAccount();
+                    }
+
+                    Navigator.pushNamedAndRemoveUntil(
+                      context,
+                      '/welcome',
+                      (route) => false,
+                    );
                   },
                 )
               ],
@@ -56,8 +121,10 @@ class _EditProfileState extends State<EditProfile> {
               content: SingleChildScrollView(
                 child: ListBody(
                   children: [
-                    Text(message,
-                        style: Theme.of(context).textTheme.labelMedium),
+                    Text(
+                      message,
+                      style: Theme.of(context).textTheme.labelMedium,
+                    ),
                   ],
                 ),
               ),
@@ -89,6 +156,7 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     AppAnalytics.setCurrentName('Edit Profile Screen');
+    final DB db = DB();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -105,19 +173,20 @@ class _EditProfileState extends State<EditProfile> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
-                    child: Center(
-                      child: CircleAvatar(
-                        backgroundColor: Colors.black,
-                        child: ClipOval(
-                          child: Image.network(
+                  GestureDetector(
+                    onTap: () {
+                      showChangePicture(user, db, userProvider);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 5, 0, 5),
+                      child: Center(
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(
                             user.profilePictureUrl ??
-                                'https://image.winudf.com/v2/image1/Y29tLmZpcmV3aGVlbC5ibGFja3NjcmVlbl9zY3JlZW5fMF8xNTgyNjgwMjgzXzA2MQ/screen-0.jpg?fakeurl=1&type=.jpg',
-                            fit: BoxFit.fitHeight,
+                                'https://upload.wikimedia.org/wikipedia/commons/8/89/Portrait_Placeholder.png',
                           ),
+                          radius: 45,
                         ),
-                        radius: 40,
                       ),
                     ),
                   ),
@@ -225,16 +294,47 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                         ),
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             Padding(
                               padding: const EdgeInsets.fromLTRB(0, 0, 24, 0),
                               child: OutlinedButton(
                                 onPressed: () {
                                   _showDialog(
-                                    'Deactivate Account',
-                                    'Are you sure?',
+                                    'Delete Account',
+                                    'All the user related data and everything will be deleted! THIS CANNOT BE UNDONE! Are you sure?',
                                     context,
+                                    delete: true,
+                                  );
+                                },
+                                style: OutlinedButton.styleFrom(
+                                  backgroundColor:
+                                      Theme.of(context).primaryColor,
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12.0,
+                                  ),
+                                  child: Text(
+                                    'Delete Account',
+                                    style: TextStyle(
+                                      color: Theme.of(context)
+                                          .scaffoldBackgroundColor,
+                                      fontSize: 12.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(0, 0, 24, 0),
+                              child: OutlinedButton(
+                                onPressed: () {
+                                  _showDialog(
+                                    'Deactivate Account',
+                                    'People will not be able to see any content related to this account when you deactivate. The account will be reactivated next time you log in.',
+                                    context,
+                                    deactivate: true,
                                   );
                                 },
                                 style: OutlinedButton.styleFrom(
@@ -276,9 +376,9 @@ class _EditProfileState extends State<EditProfile> {
                                 )),
                             const SizedBox(width: 8),
                             OutlinedButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 _formKey.currentState!.save();
-                                userProvider.updateUser(
+                                await userProvider.updateUser(
                                   user.copyWith(
                                     name: name,
                                     bio: bio,

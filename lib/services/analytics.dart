@@ -3,8 +3,8 @@ import 'package:firebase_analytics/firebase_analytics.dart';
 class AppAnalytics {
   static final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
 
-  static Future<void> setUserId(String UserID) async {
-    await analytics.setUserId(id: UserID);
+  static Future<void> setUserId(String userID) async {
+    await analytics.setUserId(id: userID);
   }
 
   static Future<void> setCurrentName(String screenName) async {

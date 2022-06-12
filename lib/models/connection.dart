@@ -1,13 +1,12 @@
 import 'package:json_annotation/json_annotation.dart';
-import './user.dart';
 
 part 'connection.g.dart';
 
 @JsonSerializable()
 class Connection {
   String id;
-  AppUser subject;
-  AppUser target;
+  String subject;
+  String target;
   String
       type; //either "connected" or "requested"; this is how we are going to manage the follower requests and following follower relations
 

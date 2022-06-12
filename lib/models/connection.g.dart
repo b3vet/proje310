@@ -8,8 +8,8 @@ part of 'connection.dart';
 
 Connection _$ConnectionFromJson(Map<String, dynamic> json) => Connection(
       id: json['id'] as String,
-      subject: AppUser.fromJson(json['subject'] as Map<String, dynamic>),
-      target: AppUser.fromJson(json['target'] as Map<String, dynamic>),
+      subject: json['subject'] as String,
+      target: json['target'] as String,
       type: json['type'] as String,
     );
 

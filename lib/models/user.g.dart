@@ -58,9 +58,8 @@ AppUser _$AppUserFromJson(Map<String, dynamic> json) => AppUser(
           .toList(),
       bio: json['bio'] as String?,
     )
-      ..posts = (json['posts'] as List<dynamic>)
-          .map((e) => Post.fromJson(e as Map<String, dynamic>))
-          .toList()
+      ..posts =
+          (json['posts'] as List<dynamic>).map((e) => e as String).toList()
       ..sharedPosts = (json['sharedPosts'] as List<dynamic>)
           .map((e) => e as String)
           .toList()

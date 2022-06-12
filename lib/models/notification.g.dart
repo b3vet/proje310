@@ -12,6 +12,7 @@ AppNotification _$AppNotificationFromJson(Map<String, dynamic> json) =>
       subjectId: json['subjectId'] as String,
       type: json['type'] as String,
       postId: json['postId'] as String,
+      targetId: json['targetId'] as String,
     );
 
 Map<String, dynamic> _$AppNotificationToJson(AppNotification instance) =>
@@ -20,4 +21,5 @@ Map<String, dynamic> _$AppNotificationToJson(AppNotification instance) =>
       'subjectId': instance.subjectId,
       'postId': instance.postId,
       'type': instance.type,
+      'targetId': instance.targetId,
     };

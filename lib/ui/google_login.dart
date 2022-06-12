@@ -66,7 +66,7 @@ class GoogleLogin extends StatelessWidget {
     AppAnalytics.setCurrentName('Login Screen');
     return Scaffold(
       body: SafeArea(
-        child: Container(
+        child: SizedBox(
           width: screenWidth(context),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -83,7 +83,6 @@ class GoogleLogin extends StatelessWidget {
                         await Provider.of<UserProvider>(context, listen: false)
                             .login();
                   } catch (e) {
-                    print(e);
                     _showDialog(
                       'Login Error',
                       'Could not login!',
@@ -120,6 +119,21 @@ class GoogleLogin extends StatelessWidget {
                 label: const Text(
                   'Login with Google',
                 ),
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  minimumSize: const Size(200, 50),
+                ),
+                icon: const Icon(
+                  Icons.email,
+                ),
+                label: const Text('Login with email and password'),
+                onPressed: () {
+                  Navigator.popAndPushNamed(context, '/login');
+                },
               ),
               TextButton(
                 onPressed: () {

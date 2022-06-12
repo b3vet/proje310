@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:project310/ui/posts_tab.dart';
 import 'package:provider/provider.dart';
 
@@ -8,81 +9,8 @@ import '../models/user.dart';
 import '../services/analytics.dart';
 import '../services/db.dart';
 import '../utils/screenSizes.dart';
-
-class ProfilePictureOverlay extends ModalRoute<void> {
-  final AppUser user;
-
-  ProfilePictureOverlay(this.user);
-  @override
-  Duration get transitionDuration => const Duration(milliseconds: 500);
-
-  @override
-  bool get opaque => false;
-
-  @override
-  bool get barrierDismissible => false;
-
-  @override
-  Color get barrierColor => Colors.black.withOpacity(0.5);
-
-  @override
-  String get barrierLabel => '';
-
-  @override
-  bool get maintainState => true;
-
-  @override
-  Widget buildPage(
-    BuildContext context,
-    Animation<double> animation,
-    Animation<double> secondaryAnimation,
-  ) {
-    return Material(
-      type: MaterialType.transparency,
-      child: SafeArea(
-        child: _buildOverlayContent(context),
-      ),
-    );
-  }
-
-  Widget _buildOverlayContent(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Image(
-            image: NetworkImage(
-              user.profilePictureUrl ?? 'empty',
-            ),
-            height: 500,
-            width: 500,
-            fit: BoxFit.fitHeight,
-          ),
-        ),
-        IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.cancel,
-            color: Colors.white,
-          ),
-        )
-      ],
-    );
-  }
-
-  @override
-  Widget buildTransitions(BuildContext context, Animation<double> animation,
-      Animation<double> secondaryAnimation, Widget child) {
-    return FadeTransition(
-      opacity: animation,
-      child: ScaleTransition(
-        scale: animation,
-        child: child,
-      ),
-    );
-  }
-}
+import 'connected_to.dart';
+import 'connected_to_me.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({
@@ -164,6 +92,7 @@ class _ProfileViewState extends State<ProfileView>
             List<Post> media = snapshot.data!['media'];
             List<Post> location = snapshot.data!['location'];
             List<dynamic> tempAll = snapshot.data!['all'];
+            bool isFollowing = snapshot.data!['following'];
             List<Post> all = [];
             bool private = false;
             bool requested = false;
@@ -189,6 +118,8 @@ class _ProfileViewState extends State<ProfileView>
               liked,
               private,
               requested,
+              isFollowing,
+              setState,
             );
           },
         );
@@ -205,6 +136,8 @@ class _ProfileViewState extends State<ProfileView>
     List<Post> likedPosts,
     bool private,
     bool requested,
+    bool isFollowing,
+    void Function(void Function() fn) stateSetter,
   ) {
     return SafeArea(
       child: NestedScrollView(
@@ -218,7 +151,14 @@ class _ProfileViewState extends State<ProfileView>
                 background: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    userDetailsColumnWidget(user, ownUser, private, requested),
+                    userDetailsColumnWidget(
+                      user,
+                      ownUser,
+                      private,
+                      requested,
+                      isFollowing,
+                      stateSetter,
+                    ),
                   ],
                 ),
               ),
@@ -265,18 +205,22 @@ class _ProfileViewState extends State<ProfileView>
                   PostsTab(
                     posts: userPosts,
                     incrementLikes: incrementLikes,
+                    stateSetter: setState,
                   ),
                   PostsTab(
                     posts: locationPosts,
                     incrementLikes: incrementLikes,
+                    stateSetter: setState,
                   ),
                   PostsTab(
                     posts: mediaPosts,
                     incrementLikes: incrementLikes,
+                    stateSetter: setState,
                   ),
                   PostsTab(
                     posts: likedPosts,
                     incrementLikes: incrementLikes,
+                    stateSetter: setState,
                   ),
                 ],
         ),
@@ -289,6 +233,8 @@ class _ProfileViewState extends State<ProfileView>
     bool ownUser,
     bool private,
     bool requested,
+    bool isFollowing,
+    void Function(void Function() fn) stateSetter,
   ) {
     DB db = DB();
     Future<List<int>> connectedCounts = db.getConnectedCounts(user);
@@ -299,17 +245,42 @@ class _ProfileViewState extends State<ProfileView>
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
-                    onTap: () => Navigator.of(context).push(
-                      ProfilePictureOverlay(
-                        user,
-                      ),
-                    ),
+                    onTap: () async {
+                      if (user.profilePictureUrl != null) {
+                        Navigator.push(
+                          context,
+                          PageRouteBuilder(
+                            transitionsBuilder: (_, anim, __, child) =>
+                                FadeTransition(opacity: anim, child: child),
+                            transitionDuration:
+                                const Duration(milliseconds: 250),
+                            pageBuilder: (context, _, __) => Scaffold(
+                              extendBodyBehindAppBar: true,
+                              appBar: AppBar(
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                              ),
+                              body: Center(
+                                child: PhotoView(
+                                  imageProvider:
+                                      NetworkImage(user.profilePictureUrl!),
+                                  minScale: PhotoViewComputedScale.contained,
+                                  maxScale:
+                                      PhotoViewComputedScale.covered * 1.1,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                    },
                     child: Padding(
                       padding: const EdgeInsets.all(20),
                       child: CircleAvatar(
@@ -327,65 +298,112 @@ class _ProfileViewState extends State<ProfileView>
                           },
                           child: const Text('Edit Profile'),
                         )
-                      : const SizedBox.shrink(),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 0, 5),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
+                      : ElevatedButton(
+                          onPressed: () async {
+                            print(isFollowing);
+                            AppUser viewingUser = Provider.of<UserProvider>(
+                              context,
+                              listen: false,
+                            ).user!;
+                            if (isFollowing) {
+                              await db.removeConnectionOfFrom(
+                                user,
+                                viewingUser,
+                              );
+                            } else {
+                              await db.addConnectionOfTo(
+                                user,
+                                viewingUser,
+                              );
+                            }
+
+                            stateSetter(() {});
+                          },
+                          child: Text(
+                            isFollowing ? 'Unconnect' : 'Connect',
                           ),
                         ),
-                        Text('@${user.username}'),
-                        const SizedBox(
-                          height: 5,
-                        ),
-                        Text(user.bio == null ? '' : '${user.bio}\n'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              snap.data![1].toString(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const Text(
-                              'Connected To Me',
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              snap.data![0].toString(),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const Text(
-                              'Connected To',
-                              style: TextStyle(
-                                fontSize: 15,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  )
                 ],
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                      ),
+                    ),
+                    Text('@${user.username}'),
+                    const SizedBox(
+                      height: 5,
+                    ),
+                    Text(user.bio == null ? '' : '${user.bio}'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      snap.data![0].toString(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ConnectedToMePage(
+                              user: user,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Connected To Me',
+                        style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                              fontSize: 15,
+                            ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      snap.data![1].toString(),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ConnectedToPage(
+                              user: user,
+                            ),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Connected To',
+                        style: Theme.of(context).textTheme.bodyText2!.copyWith(
+                              fontSize: 15,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

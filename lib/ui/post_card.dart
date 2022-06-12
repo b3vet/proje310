@@ -1,5 +1,7 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:photo_view/photo_view.dart';
 
 import '../logic/user_provider.dart';
 import '../models/post.dart';
@@ -7,10 +9,12 @@ import '../models/user.dart';
 import '../services/db.dart';
 import '../utils/route_args.dart';
 import '../utils/screenSizes.dart';
+import 'add_post_modal_sheeet_view.dart';
+import 'post_video_player.dart';
 
 typedef PostAndUserToVoid = Future<void> Function(Post, AppUser);
 
-class PostCard extends StatelessWidget {
+class PostCard extends StatefulWidget {
   final Post post;
   final PostAndUserToVoid incrementLike;
   final String? sharedBy;
@@ -22,12 +26,18 @@ class PostCard extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<PostCard> {
+  @override
   Widget build(BuildContext context) {
     DB db = DB();
     AppUser currentUser =
         Provider.of<UserProvider>(context, listen: false).user!;
-    Future<AppUser?> postsUser = db.getUser(post.userId);
-    Duration differenceFromNow = DateTime.now().difference(post.createdAt);
+    Future<AppUser?> postsUser = db.getUser(widget.post.userId);
+    Duration differenceFromNow =
+        DateTime.now().difference(widget.post.createdAt);
     return FutureBuilder<AppUser?>(
       future: postsUser,
       builder: (BuildContext context, AsyncSnapshot<AppUser?> snap) {
@@ -44,7 +54,7 @@ class PostCard extends StatelessWidget {
                 context,
                 '/singlePostView',
                 arguments: SinglePostViewArguments(
-                  post: post,
+                  post: widget.post,
                 ),
               );
             },
@@ -56,6 +66,12 @@ class PostCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (widget.post.sharedBy != null)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                        child: Text(
+                            'reshared by @${widget.post.sharedBy!.username}'),
+                      ),
                     GestureDetector(
                       onTap: () {
                         Navigator.pushNamed(
@@ -105,52 +121,79 @@ class PostCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 15),
                     Text(
-                      post.text,
+                      widget.post.text,
                       style: const TextStyle(
                         fontSize: 20,
                       ),
                     ),
-                    post.imageUrl != null
-                        ? _postImageView(context, post)
-                        : const SizedBox.shrink(),
+                    if (widget.post.imageUrl != null)
+                      _postImageView(context, widget.post),
+                    if (widget.post.videoUrl != null)
+                      PostVideoPlayer(
+                        videoUrl: widget.post.videoUrl!,
+                      ),
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                      ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           TextButton.icon(
-                            onPressed: () {},
+                            onPressed: () {
+                              showCupertinoModalPopup(
+                                context: context,
+                                builder: (context) => AddPostModalSheetView(
+                                  user: currentUser,
+                                  commentToPost: widget.post,
+                                ),
+                              );
+                            },
                             icon: const Icon(
                               Icons.chat_bubble_outline,
                               color: Colors.black,
                               size: 20,
                             ),
                             label: Text(
-                              post.commentCount.toString(),
+                              widget.post.commentCount.toString(),
                             ),
                           ),
                           const Spacer(),
-                          const Icon(
-                            Icons.repeat,
-                            color: Colors.black,
-                            size: 20,
-                          ),
-                          Text(
-                            post.shareCount.toString(),
+                          TextButton.icon(
+                            label: Text(
+                              widget.post.shareCount.toString(),
+                            ),
+                            onPressed: () async {
+                              if (currentUser.sharedPosts
+                                  .contains(widget.post.id)) {
+                                await db.removeShare(widget.post, currentUser);
+                              } else {
+                                await db.resharePost(widget.post, currentUser);
+                              }
+                              setState(() {});
+                            },
+                            icon: Icon(
+                              Icons.repeat,
+                              color: currentUser.sharedPosts
+                                      .contains(widget.post.id)
+                                  ? Colors.green
+                                  : Colors.black,
+                              size: 20,
+                            ),
                           ),
                           const Spacer(),
                           TextButton.icon(
-                            onPressed: () async =>
-                                await incrementLike(post, currentUser),
+                            onPressed: () async => await widget.incrementLike(
+                                widget.post, currentUser),
                             icon: Icon(
-                              post.likedBy.contains(currentUser.id)
+                              widget.post.likedBy.contains(currentUser.id)
                                   ? Icons.star_rate_rounded
                                   : Icons.star_outline_rounded,
                               color: Colors.yellow.shade800,
                               size: 20,
                             ),
                             label: Text(
-                              post.likeCount.toString(),
+                              widget.post.likeCount.toString(),
                             ),
                           ),
                           const Spacer(),
@@ -176,21 +219,45 @@ class PostCard extends StatelessWidget {
   }
 
   Widget _postImageView(BuildContext context, Post post) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(top: 20.0),
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Theme.of(context).primaryColor,
-        ),
-        borderRadius: const BorderRadius.all(
-          Radius.circular(10),
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        PageRouteBuilder(
+          transitionsBuilder: (_, anim, __, child) =>
+              FadeTransition(opacity: anim, child: child),
+          transitionDuration: const Duration(milliseconds: 250),
+          pageBuilder: (context, _, __) => Scaffold(
+            extendBodyBehindAppBar: true,
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+            ),
+            body: Center(
+              child: PhotoView(
+                imageProvider: NetworkImage(post.imageUrl!),
+                minScale: PhotoViewComputedScale.contained,
+                maxScale: PhotoViewComputedScale.covered * 1.1,
+              ),
+            ),
+          ),
         ),
       ),
-      child: Image.network(
-        post.imageUrl!,
-        height: screenHeight(context, dividedBy: 4),
-        fit: BoxFit.cover,
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 20.0),
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Theme.of(context).primaryColor,
+          ),
+          borderRadius: const BorderRadius.all(
+            Radius.circular(10),
+          ),
+        ),
+        child: Image.network(
+          post.imageUrl!,
+          height: screenHeight(context, dividedBy: 4),
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }

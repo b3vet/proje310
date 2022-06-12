@@ -1,4 +1,6 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
@@ -8,23 +10,49 @@ import '../services/analytics.dart';
 import '../services/db.dart';
 import '../utils/route_args.dart';
 import '../utils/screenSizes.dart';
+import 'add_post_modal_sheeet_view.dart';
+import 'post_video_player.dart';
 
 Widget _postImageView(BuildContext context, Post post) {
-  return Container(
-    width: double.infinity,
-    margin: const EdgeInsets.only(top: 20.0),
-    decoration: BoxDecoration(
-      border: Border.all(
-        color: Theme.of(context).primaryColor,
-      ),
-      borderRadius: const BorderRadius.all(
-        Radius.circular(10),
+  return GestureDetector(
+    onTap: () => Navigator.push(
+      context,
+      PageRouteBuilder(
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 250),
+        pageBuilder: (context, _, __) => Scaffold(
+          extendBodyBehindAppBar: true,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+          ),
+          body: Center(
+            child: PhotoView(
+              imageProvider: NetworkImage(post.imageUrl!),
+              minScale: PhotoViewComputedScale.contained,
+              maxScale: PhotoViewComputedScale.covered * 1.1,
+            ),
+          ),
+        ),
       ),
     ),
-    child: Image.network(
-      post.imageUrl!,
-      height: screenHeight(context, dividedBy: 4),
-      fit: BoxFit.cover,
+    child: Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 20.0),
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Theme.of(context).primaryColor,
+        ),
+        borderRadius: const BorderRadius.all(
+          Radius.circular(10),
+        ),
+      ),
+      child: Image.network(
+        post.imageUrl!,
+        height: screenHeight(context, dividedBy: 4),
+        fit: BoxFit.cover,
+      ),
     ),
   );
 }
@@ -167,13 +195,25 @@ Widget commentCard(BuildContext context, Post comment, Post commentTo) {
                 ),
               ),
               if (comment.imageUrl != null) _postImageView(context, comment),
+              if (comment.videoUrl != null)
+                PostVideoPlayer(
+                  videoUrl: comment.videoUrl!,
+                ),
               Padding(
                 padding: const EdgeInsets.all(4.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     TextButton.icon(
-                      onPressed: () {},
+                      onPressed: () {
+                        showCupertinoModalPopup(
+                          context: context,
+                          builder: (context) => AddPostModalSheetView(
+                            user: currentUser,
+                            commentToPost: comment,
+                          ),
+                        );
+                      },
                       icon: const Icon(
                         Icons.chat_bubble_outline,
                         color: Colors.black,
@@ -229,8 +269,14 @@ Widget commentCard(BuildContext context, Post comment, Post commentTo) {
   );
 }
 
-class SinglePostView extends StatelessWidget {
+class SinglePostView extends StatefulWidget {
   const SinglePostView({Key? key}) : super(key: key);
+
+  @override
+  State<SinglePostView> createState() => _SinglePostViewState();
+}
+
+class _SinglePostViewState extends State<SinglePostView> {
   @override
   Widget build(BuildContext context) {
     AppAnalytics.setCurrentName('Single Post Screen');
@@ -305,7 +351,9 @@ class SinglePostView extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(8.0),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                      ),
                       child: Text(
                         post.text,
                         style: Theme.of(context).textTheme.bodyText2!.copyWith(
@@ -313,25 +361,13 @@ class SinglePostView extends StatelessWidget {
                             ),
                       ),
                     ),
-                    post.imageUrl != null
-                        ? Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.only(top: 20.0),
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: Theme.of(context).primaryColor,
-                              ),
-                              borderRadius: const BorderRadius.all(
-                                Radius.circular(10),
-                              ),
-                            ),
-                            child: Image.network(
-                              post.imageUrl!,
-                            ),
-                          )
-                        : const SizedBox.shrink(),
+                    if (post.imageUrl != null) _postImageView(context, post),
+                    if (post.videoUrl != null)
+                      PostVideoPlayer(
+                        videoUrl: post.videoUrl!,
+                      ),
                     const SizedBox(
-                      height: 20,
+                      height: 8,
                     ),
                     Text(
                       '${post.createdAt.hour.toString().padLeft(2, '0')}:${post.createdAt.minute.toString().padLeft(2, '0')} · ${post.createdAt.day.toString().padLeft(2, '0')}.${post.createdAt.month.toString().padLeft(2, '0')}.${post.createdAt.year.toString()}',
@@ -363,11 +399,37 @@ class SinglePostView extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 24.0),
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.chat_bubble_outline,
+                          IconButton(
+                            onPressed: () async {
+                              await showCupertinoModalPopup(
+                                context: context,
+                                builder: (context) => AddPostModalSheetView(
+                                  user: currentUser,
+                                  commentToPost: post,
+                                ),
+                              );
+                              setState(() {});
+                            },
+                            icon: const Icon(
+                              Icons.chat_bubble_outline,
+                            ),
                           ),
-                          const Icon(
-                            Icons.repeat_outlined,
+                          IconButton(
+                            onPressed: () async {
+                              if (currentUser.sharedPosts.contains(post.id)) {
+                                await db.removeShare(post, currentUser);
+                              } else {
+                                await db.resharePost(post, currentUser);
+                              }
+                              setState(() {});
+                            },
+                            icon: Icon(
+                              Icons.repeat,
+                              color: currentUser.sharedPosts.contains(post.id)
+                                  ? Colors.green
+                                  : Colors.black,
+                              size: 20,
+                            ),
                           ),
                           post.likedBy.contains(currentUser.id)
                               ? IconButton(
@@ -375,11 +437,23 @@ class SinglePostView extends StatelessWidget {
                                     Icons.star_rate_rounded,
                                     color: Colors.yellow.shade800,
                                   ),
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    await db.decrementLike(post, currentUser);
+                                    setState(() {
+                                      post.likeCount--;
+                                      post.likedBy.remove(currentUser.id);
+                                    });
+                                  },
                                 )
                               : IconButton(
                                   icon: const Icon(Icons.star_outline_rounded),
-                                  onPressed: () {},
+                                  onPressed: () async {
+                                    await db.incrementLike(post, currentUser);
+                                    setState(() {
+                                      post.likeCount++;
+                                      post.likedBy.add(currentUser.id);
+                                    });
+                                  },
                                 ),
                           const Icon(
                             Icons.share_outlined,

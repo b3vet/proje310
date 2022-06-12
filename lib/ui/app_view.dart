@@ -1,14 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+
 import 'package:provider/provider.dart';
 
 import '../logic/user_provider.dart';
-import '../models/post.dart';
-import '../models/user.dart';
-import '../services/db.dart';
-import '../utils/screenSizes.dart';
+
 import 'feed.dart';
 import 'notifications_view.dart';
 import 'profile_view.dart';
@@ -44,7 +39,6 @@ class _AppViewState extends State<AppView> {
 
   @override
   Widget build(BuildContext context) {
-    AppUser user = Provider.of<UserProvider>(context, listen: false).user!;
     return Scaffold(
       appBar: AppBar(
         title: const Text('SUConnect'),

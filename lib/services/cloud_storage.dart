@@ -23,4 +23,16 @@ class CloudStorage {
     final postMediaRef = storageRef.child('postMedia/$postId');
     postMediaRef.delete();
   }
+
+  Future<String?> addMediaOfPost(String postId, File media) async {
+    final storageRef = FirebaseStorage.instance.ref();
+    final postMediaRef = storageRef.child('postMedia/$postId');
+    try {
+      await postMediaRef.putFile(media);
+      return postMediaRef.getDownloadURL();
+    } on FirebaseException catch (e) {
+      print(e);
+      return null;
+    }
+  }
 }

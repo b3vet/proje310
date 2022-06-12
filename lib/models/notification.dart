@@ -7,7 +7,7 @@ class AppNotification {
   String id;
   String subjectId;
   String postId;
-  String type; //"share" or "like" or "comment"
+  String type; //"share" or "like" or "comment" or "followed"
   String targetId;
 
   AppNotification({

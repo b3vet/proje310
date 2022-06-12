@@ -11,20 +11,27 @@ class PostsTab extends StatelessWidget {
     Key? key,
     required this.posts,
     required this.incrementLikes,
+    required this.stateSetter,
   }) : super(key: key);
   final List<Post> posts;
   final PostAndUserToVoid incrementLikes;
+  final void Function(void Function() fn) stateSetter;
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: posts
-          .map(
-            (post) => PostCard(
-              post: post,
-              incrementLike: incrementLikes,
-            ),
-          )
-          .toList(),
+    return RefreshIndicator(
+      onRefresh: () async {
+        stateSetter(() {});
+      },
+      child: ListView(
+        children: posts
+            .map(
+              (post) => PostCard(
+                post: post,
+                incrementLike: incrementLikes,
+              ),
+            )
+            .toList(),
+      ),
     );
   }
 }

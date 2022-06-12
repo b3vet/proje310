@@ -663,4 +663,71 @@ class DB {
       'publicAccount': user.publicAccount,
     });
   }
+
+  Future<List<AppUser>> getFollowerRequests(AppUser user) async {
+    final connectRef = FirebaseFirestore.instance.collection('connections');
+    final usersRef = FirebaseFirestore.instance.collection('users');
+    final result = await connectRef
+        .where('target', isEqualTo: user.id)
+        .where('type', isEqualTo: 'requested')
+        .get();
+    final listOfRequestedUsers = result.docs
+        .map(
+          (doc) => doc.data()['subject'] as String,
+        )
+        .toList();
+    late QuerySnapshot<Map<String, dynamic>> getRequestedUsersResults;
+    List<List<String>?> arrayChunks = [];
+    for (var i = 0; i < listOfRequestedUsers.length; i += 10) {
+      arrayChunks.add(
+        listOfRequestedUsers.sublist(
+          i,
+          i + 10 < listOfRequestedUsers.length
+              ? i + 10
+              : listOfRequestedUsers.length,
+        ),
+      );
+    }
+    List<AppUser> returner = [];
+    try {
+      for (var i = 0; i < arrayChunks.length; i++) {
+        getRequestedUsersResults =
+            await usersRef.where('id', whereIn: arrayChunks[i]).get();
+        returner.addAll(
+          getRequestedUsersResults.docs
+              .map(
+                (document) => AppUser.fromJson(
+                  document.data(),
+                ),
+              )
+              .toList(),
+        );
+      }
+      return returner;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<void> approveRequest(
+      {required AppUser requestingUser, required AppUser owningUser}) async {
+    final connectRef = FirebaseFirestore.instance.collection('connections');
+    final result = await connectRef
+        .where('target', isEqualTo: owningUser.id)
+        .where('subject', isEqualTo: requestingUser.id)
+        .get();
+    await connectRef.doc(result.docs[0].data()['id']).update({
+      'type': 'connected',
+    });
+  }
+
+  Future<void> declineRequest(
+      {required AppUser requestingUser, required AppUser owningUser}) async {
+    final connectRef = FirebaseFirestore.instance.collection('connections');
+    final result = await connectRef
+        .where('target', isEqualTo: owningUser.id)
+        .where('subject', isEqualTo: requestingUser.id)
+        .get();
+    await connectRef.doc(result.docs[0].data()['id']).delete();
+  }
 }

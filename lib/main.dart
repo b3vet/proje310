@@ -22,6 +22,7 @@ import 'ui/signup.dart';
 import 'ui/single_post_view.dart';
 import 'ui/walkthrough.dart';
 import 'ui/welcome.dart';
+import 'ui/follower_requests.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -156,6 +157,7 @@ class MyApp extends StatelessWidget {
           '/googleLogin': (context) => const GoogleLogin(),
           '/googleSignup': (context) => const GoogleSignup(),
           '/addDetailsAfterSignup': (context) => const AddDetailsAfterSignUp(),
+          '/followerRequests': (context) => const FollowerRequestsView(),
         },
         home: welcomeShownBefore == false
             ? const WalkThrough()

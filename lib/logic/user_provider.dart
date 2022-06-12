@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
@@ -183,7 +184,11 @@ class UserProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    await GoogleSignIn().disconnect();
+    if (await GoogleSignIn().isSignedIn()) {
+      await GoogleSignIn().disconnect().catchError((e, stack) {
+        FirebaseCrashlytics.instance.recordError(e, stack);
+      });
+    }
     await FirebaseAuth.instance.signOut();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user');

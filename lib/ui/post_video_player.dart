@@ -19,53 +19,44 @@ class FullScreenVideoPlayer extends StatefulWidget {
 }
 
 class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
-  late ChewieController _chewieController;
+  late VideoPlayerController _controller;
   @override
   void initState() {
     super.initState();
-    super.initState();
-    _chewieController = ChewieController(
-      videoPlayerController: VideoPlayerController.network(widget.videoUrl),
-      autoInitialize: true,
-      autoPlay: true,
-      looping: true,
-      errorBuilder: (context, errorMessage) {
-        return Center(
-          child: Text(
-            errorMessage,
-            style: const TextStyle(color: Colors.white),
-          ),
-        );
-      },
-    );
+
+    _controller = VideoPlayerController.network(widget.videoUrl)
+      ..initialize().then((_) async {
+        setState(() {
+          _controller.setLooping(true);
+          _controller.play();
+        });
+      });
   }
 
   @override
   void dispose() {
     super.dispose();
-    _chewieController.dispose();
+    _controller.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
-        _chewieController.pause();
+        _controller.pause();
         return true;
       },
       child: Scaffold(
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             setState(() {
-              _chewieController.videoPlayerController.value.isPlaying
-                  ? _chewieController.pause()
-                  : _chewieController.play();
+              _controller.value.isPlaying
+                  ? _controller.pause()
+                  : _controller.play();
             });
           },
           child: Icon(
-            _chewieController.videoPlayerController.value.isPlaying
-                ? Icons.pause
-                : Icons.play_arrow,
+            _controller.value.isPlaying ? Icons.pause : Icons.play_arrow,
           ),
         ),
         backgroundColor: Colors.black,
@@ -75,9 +66,12 @@ class _FullScreenVideoPlayerState extends State<FullScreenVideoPlayer> {
           elevation: 0,
         ),
         body: Center(
-          child: Chewie(
-            controller: _chewieController,
-          ),
+          child: _controller.value.isInitialized
+              ? AspectRatio(
+                  aspectRatio: _controller.value.aspectRatio,
+                  child: VideoPlayer(_controller),
+                )
+              : Container(),
         ),
       ),
     );

@@ -43,6 +43,21 @@ class _AppViewState extends State<AppView> {
       appBar: AppBar(
         title: const Text('SUConnect'),
         actions: [
+          if (_selectedIndex == 2)
+            TextButton(
+              child: const Text(
+                'See Follower Requests',
+                style: TextStyle(
+                  color: Colors.white,
+                ),
+              ),
+              onPressed: () {
+                Navigator.pushNamed(
+                  context,
+                  '/followerRequests',
+                );
+              },
+            ),
           if (_selectedIndex == 3)
             IconButton(
               icon: const Icon(Icons.logout_outlined),
